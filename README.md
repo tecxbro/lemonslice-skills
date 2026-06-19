@@ -18,7 +18,7 @@ npx skills add tecxbro/lemonslice-skills --skill lemonslice-livekit
 
 | Skill                          | Purpose                                                                |
 | ------------------------------ | ---------------------------------------------------------------------- |
-| lemonslice-overview            | Understand Lemon Slice and the available integration paths             |
+| lemonslice-overview            | Conceptual product map to understand what Lemon Slice is and integration paths |
 | **lemonslice-integration-choice** | **MANDATORY ROUTER: Must run first to choose the correct path** |
 | lemonslice-self-managed        | Build with Lemon Slice as the avatar layer in a custom agent stack     |
 | lemonslice-livekit             | Add Lemon Slice avatars to LiveKit Agents                              |
