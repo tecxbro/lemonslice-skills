@@ -7,7 +7,7 @@ license: MIT
 # Lemon Slice Pipecat Integration
 
 ## Official docs
-- https://lemonslice.com/docs/pipecat
+- https://lemonslice.com/docs/pipecat.md
 
 ## Use this skill when
 The developer is building a conversational AI pipeline using the Pipecat framework and wants to use Lemon Slice for video avatar generation.
@@ -21,9 +21,13 @@ The developer is building a conversational AI pipeline using the Pipecat framewo
 2. **Setup Transport:** 
    - Pipecat uses Daily as the transport layer for Lemon Slice.
    - Use `LemonSliceTransport` to connect the Pipecat bot to a virtual Daily room.
-   - Configuration via `LemonSliceNewSessionRequest`.
+   - The avatar's microphone is automatically muted by the transport to prevent audio feedback loops.
+3. **Configure Session Details:**
+   - Configuration is passed via `LemonSliceNewSessionRequest`.
+   - Required: `agent_id` OR `agent_image_url`.
+   - Optional parameters: `agent_prompt`, `agent_idle_prompt`, `idle_timeout`, `response_done_timeout`, `lemonslice_properties` (for recording config).
    - `daily_room_url` and `daily_token` are optional. If `daily_room_url` is not provided, Lemon Slice will automatically create a room.
-3. **Configure Pipeline:**
+4. **Configure Pipeline:**
    - The Pipecat bot acts as the "brain" (audio -> STT -> LLM -> TTS).
    - The Lemon Slice avatar acts as the "face" receiving TTS audio and rendering video.
 
@@ -34,4 +38,5 @@ The developer is building a conversational AI pipeline using the Pipecat framewo
 ## Validation checklist
 - [ ] Is `pipecat-ai[lemonslice]` installed?
 - [ ] Is `LemonSliceTransport` configured in the Pipecat pipeline?
+- [ ] Is `LemonSliceNewSessionRequest` passing the correct properties?
 - [ ] If `daily_room_url` is omitted, is the code designed to handle Lemon Slice auto-creating the room?
