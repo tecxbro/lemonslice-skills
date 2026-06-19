@@ -363,3 +363,10 @@ But if the Pipecat transport abstracts session internals, use the official trans
 - [ ] Is there explicit shutdown logic on normal termination or timeouts?
 - [ ] Are API keys absent from frontend-facing logs or returns?
 - [ ] Are there startup timeouts?
+- [ ] Did `lemonslice-integration-choice` explicitly select Pipecat?
+- [ ] Did I inspect repo evidence before editing?
+- [ ] Is `LemonSliceParams` used only according to the official Pipecat transport pattern?
+- [ ] Are `daily_room_url` and `daily_token` treated as optional?
+- [ ] Does the implementation preserve the developer-owned STT/LLM/TTS pipeline?
+- [ ] Did I avoid Hosted Daily `/liveai/rooms` unless the router selected `lemonslice-hosted-daily`?
+- [ ] Did I repeat the key distinction: Pipecat may use Daily, but it is not Hosted Daily?
