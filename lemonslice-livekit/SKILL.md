@@ -71,6 +71,12 @@ Python:
 pip install "livekit-agents[lemonslice]"
 ```
 
+Python with uv:
+
+```bash
+uv add "livekit-agents[lemonslice]"
+```
+
 Node with npm:
 
 ```bash
@@ -118,6 +124,8 @@ await avatar.start(session, room=ctx.room)
 Rules:
 * Use `lemonslice.AvatarSession`.
 * Use exactly one of `agent_id` or `agent_image_url`.
+* For `agent_image_url`, prefer a publicly accessible image URL focused on the face. Official docs recommend 368 × 560 pixels; LemonSlice will center-crop if dimensions differ.
+* When using `agent_id` with the LiveKit plugin, do not assume LemonSlice web-app voice/personality settings carry over. The LiveKit plugin uses the developer’s own STT/LLM/TTS stack; selected LemonSlice voices and personalities are ignored.
 * Start with `await avatar.start(session, room=ctx.room)`.
 * Do not manually create `/api/liveai/sessions` from a normal LiveKit plugin integration unless the official docs explicitly require it for the selected path.
 
@@ -153,6 +161,10 @@ Do not treat LiveKit participant join as avatar readiness.
 The explicit readiness signal is:
 - `bot_ready`
 
+Official LiveKit RPC topic:
+- topic: `lemonslice`
+- readiness type: `bot_ready`
+
 The agent must wait for `bot_ready` before:
 - showing “avatar ready”
 - sending control/actions
@@ -164,7 +176,7 @@ Handle these LemonSlice data-channel events:
 - `idle_timeout`: avatar session idled out. Stop waiting for output, clean up state, and shut down if appropriate.
 - `error`: general LemonSlice/avatar error. Log with context, surface a safe error state, and clean up.
 - `video_generation_error`: avatar video generation failed. Treat as avatar-path failure, not necessarily LiveKit room failure.
-- `metric`: telemetry/observability event. Record/log it, but do not treat it as an error.
+- `metric`: telemetry/observability event. For `metric`, record useful fields such as `time_to_first_push` and `tts_audio_delay`. Treat `tts_audio_delay=true` as a latency/realtime-delivery signal, not as a LemonSlice crash by itself.
 
 Add a startup timeout around `bot_ready`. If it never arrives, fail safely, clean up the room/avatar, and expose a retry path.
 
@@ -180,15 +192,12 @@ Implement cleanup for:
 - `video_generation_error`
 - process signals / deployment shutdown
 
-Preferred order:
-1. Stop accepting new avatar-dependent work.
-2. End or disconnect the LiveKit agent/session according to the project’s LiveKit lifecycle.
-3. Stop LemonSlice avatar generation using the plugin’s documented cleanup method if available.
-4. If the integration exposes a LemonSlice self-managed session id and control endpoint is appropriate, send the documented terminate control event:
+The official docs give three exact shutdown paths:
+1. `ctx.room.disconnect()` closes the LiveKit room connection and ends the LemonSlice avatar session.
+2. `ctx.shutdown()` stops the Agent `JobContext` and LemonSlice avatar session without shutting down the LiveKit room.
+3. `terminate` shuts down only the LemonSlice avatar without shutting down the LiveKit room or agent.
 
-```json
-{ "event": "terminate" }
-```
+Also, if not shut down, the LemonSlice session remains active until idle timeout or the 1-hour maximum session duration expires.
 
 Do not confuse terminating LemonSlice avatar generation with deleting unrelated app state.
 
