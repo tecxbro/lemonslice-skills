@@ -7,16 +7,17 @@ license: MIT
 # Lemon Slice Overview
 
 ## Official docs
-- LemonSlice LLM docs index
-- Introduction / Welcome
-- Reference overview
-- LiveKit integration
-- Pipecat integration
-- Widget overview
-- Hosted Pipeline overview
-- Hosted Daily integration
-- Best practices
-- Actions / controls
+- https://lemonslice.com/docs/llms.txt
+- https://lemonslice.com/docs/introduction/index.md
+- https://lemonslice.com/docs/reference/overview.md
+- https://lemonslice.com/docs/reference/best-practices.md
+- https://lemonslice.com/docs/livekit/index.md
+- https://lemonslice.com/docs/pipecat/index.md
+- https://lemonslice.com/docs/widget/overview.md
+- https://lemonslice.com/docs/widget/control.md
+- https://lemonslice.com/docs/hosted/overview.md
+- https://lemonslice.com/docs/hosted/integrations/daily-room-integration.md
+- https://lemonslice.com/docs/reference/actions.md
 
 ## Use this skill when
 You need a conceptual product map to understand the architecture of Lemon Slice, its integration paths, and how the various agent skills in this repository map to those paths.
