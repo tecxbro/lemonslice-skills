@@ -10,6 +10,7 @@ license: MIT
 - https://lemonslice.com/docs/pipecat.md
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 The developer is building a conversational AI pipeline using the Pipecat framework and wants to use Lemon Slice for video avatar generation.
 
 ## Do not use this skill when

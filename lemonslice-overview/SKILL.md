@@ -25,7 +25,7 @@ You have already selected an integration path and need specific implementation d
    - LiveKit (Self-Managed)
    - Pipecat (Self-Managed)
    - REST API (Hosted or Self-Managed)
-4. Read the `lemonslice-integration-choice` skill next to select the correct technical path for your current task.
+4. Read the `lemonslice-integration-choice` skill next. This is the mandatory router for the repository and MUST be used to select the correct technical path before any code is written.
 
 ## Common mistakes
 - Confusing Hosted Pipeline with Self-Managed Pipeline. Hosted means Lemon Slice runs the AI; Self-Managed means you run the AI.

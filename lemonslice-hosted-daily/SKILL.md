@@ -10,6 +10,7 @@ license: MIT
 - https://lemonslice.com/docs/hosted/integrations/daily-room-integration
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 You are building the frontend user interface for a Hosted Lemon Slice session, and the backend has already created the session and returned the Daily room credentials.
 
 ## Do not use this skill when

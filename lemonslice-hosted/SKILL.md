@@ -11,6 +11,7 @@ license: MIT
 - https://lemonslice.com/docs/api-reference/create-hosted-session
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 The developer wants Lemon Slice to handle the entire AI pipeline (STT, LLM, TTS, avatar), and the backend needs to create/manage these sessions.
 
 ## Do not use this skill when

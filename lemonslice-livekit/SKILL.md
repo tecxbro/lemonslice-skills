@@ -10,6 +10,7 @@ license: MIT
 - https://lemonslice.com/docs/livekit.md
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 The developer is building a voice AI agent using the LiveKit Agents framework and wants to add a Lemon Slice avatar video track.
 
 ## Do not use this skill when

@@ -10,6 +10,7 @@ license: MIT
 - https://lemonslice.com/docs/reference/best-practices.md
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 You are reviewing, auditing, or finalizing a Lemon Slice integration and need to ensure it is secure, performant, and stable for production use.
 
 ## Do not use this skill when

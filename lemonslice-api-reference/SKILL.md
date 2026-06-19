@@ -10,6 +10,7 @@ license: MIT
 - https://lemonslice.com/docs/reference/overview.md
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 You need to call raw Lemon Slice REST endpoints for session creation, status polling, or metadata retrieval from a backend environment.
 
 ## Do not use this skill when

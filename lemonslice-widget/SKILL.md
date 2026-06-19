@@ -11,6 +11,7 @@ license: MIT
 - https://lemonslice.com/docs/widget/control.md
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 The developer wants the simplest integration path: dropping a prebuilt web component onto a website with minimal custom coding.
 
 ## Do not use this skill when

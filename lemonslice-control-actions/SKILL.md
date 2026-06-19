@@ -11,6 +11,7 @@ license: MIT
 - https://lemonslice.com/docs/api-reference/control-self-managed-session.md
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 You need to programmatically control an active avatar session, such as triggering specific custom motion sequences (actions) or terminating the avatar without dropping the underlying transport connection.
 
 ## Do not use this skill when

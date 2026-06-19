@@ -11,6 +11,7 @@ license: MIT
 - https://lemonslice.com/docs/api-reference/get-self-managed-session
 
 ## Use this skill when
+> **Guardrail:** Use only after `lemonslice-integration-choice` has explicitly selected this path.
 The developer owns the entire AI stack (STT, LLM, TTS) and wants to use Lemon Slice exclusively as the video generation layer.
 
 ## Do not use this skill when
