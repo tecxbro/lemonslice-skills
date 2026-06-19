@@ -6,6 +6,9 @@ license: MIT
 
 # Lemon Slice Pipecat Integration
 
+## Official docs
+- https://lemonslice.com/docs/pipecat
+
 ## Use this skill when
 The developer is building a conversational AI pipeline using the Pipecat framework and wants to use Lemon Slice for video avatar generation.
 
@@ -14,17 +17,15 @@ The developer is building a conversational AI pipeline using the Pipecat framewo
 - The developer wants Lemon Slice to manage the full STT/LLM/TTS stack (use `lemonslice-hosted`).
 
 ## Agent workflow
-1. **Install package:** Use `pipecat-ai[lemonslice]`.
+1. **Install package:** Use `pip install "pipecat-ai[lemonslice]"`.
 2. **Setup Transport:** 
    - Pipecat uses Daily as the transport layer for Lemon Slice.
    - Use `LemonSliceTransport` to connect the Pipecat bot to a virtual Daily room.
-   - You can provide an existing `daily_room_url` or let the transport auto-provision one.
+   - Configuration via `LemonSliceNewSessionRequest`.
+   - `daily_room_url` and `daily_token` are optional. If `daily_room_url` is not provided, Lemon Slice will automatically create a room.
 3. **Configure Pipeline:**
    - The Pipecat bot acts as the "brain" (audio -> STT -> LLM -> TTS).
    - The Lemon Slice avatar acts as the "face" receiving TTS audio and rendering video.
-   - Configure `agent_image_url` (or `agent_id`) on the transport.
-4. **Frontend Integration:**
-   - Use `@pipecat-ai/client-react` or `@pipecat-ai/client-js` to render the custom UI. The Daily Prebuilt UI is typically not used.
 
 ## Common mistakes
 - Confusing Pipecat's use of Daily with the "Hosted Daily" integration. Pipecat is a Self-Managed pipeline; Hosted Daily means Lemon Slice manages the pipeline.
@@ -33,4 +34,4 @@ The developer is building a conversational AI pipeline using the Pipecat framewo
 ## Validation checklist
 - [ ] Is `pipecat-ai[lemonslice]` installed?
 - [ ] Is `LemonSliceTransport` configured in the Pipecat pipeline?
-- [ ] Are the bot, avatar, and user all joining the same Daily room?
+- [ ] If `daily_room_url` is omitted, is the code designed to handle Lemon Slice auto-creating the room?

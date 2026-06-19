@@ -6,6 +6,10 @@ license: MIT
 
 # Lemon Slice Integration Choice
 
+## Official docs
+- https://lemonslice.com/docs/introduction.md
+- https://lemonslice.com/docs/examples.md
+
 ## Use this skill when
 You need to decide which Lemon Slice integration path to use for a new project, or you need to verify that an existing project is using the correct approach.
 

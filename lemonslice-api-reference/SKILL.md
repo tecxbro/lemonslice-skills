@@ -6,6 +6,9 @@ license: MIT
 
 # Lemon Slice API Reference
 
+## Official docs
+- https://lemonslice.com/docs/reference/overview.md
+
 ## Use this skill when
 You need to call raw Lemon Slice REST endpoints for session creation, status polling, or metadata retrieval from a backend environment.
 
@@ -18,22 +21,23 @@ You need to call raw Lemon Slice REST endpoints for session creation, status pol
    - Base URL: `https://lemonslice.com/api`
    - Authentication: Add the `X-API-Key` header to all requests.
 2. **Identify the correct endpoint family:**
-   - **Self-Managed:** Uses the `/liveai/sessions/` path prefix.
-   - **Hosted:** Uses the `/liveai/rooms/` path prefix.
-   - Do NOT mix these.
-3. **Common Request Parameters (Creation):**
-   - Identity: `agent_id` (dashboard configured) OR `agent_image_url` (dynamic, ideally 368x560 px). They are mutually exclusive.
-   - Behavior: `agent_prompt` to control demeanor.
-   - Transport (Self-Managed): `transport_type` (e.g., `livekit`) and `properties` (e.g., URLs and tokens).
-4. **Session Status:**
-   - Polling endpoints return a `session_status`: `QUEUED`, `ACTIVE`, `COMPLETED`, `TIMED_OUT`, `FAILED`.
+   - **Self-Managed:** strictly uses `/liveai/sessions`
+   - **Hosted/Widget rooms:** strictly uses `/liveai/rooms`
+   - Do NOT mix these endpoint families.
+3. **Creation Endpoints:**
+   - **Hosted:** `POST /api/liveai/rooms`
+     - Response exact fields: `room_url`, `token`, `image_url`, `session_id`
+   - **Self-Managed:** `POST /api/liveai/sessions`
+     - Response exact fields: `session_id`
+4. **Other Documented Endpoints:**
+   - Include `GET` (status/metadata), `LIST` (if documented without generic pagination limits), and `POST .../control` (control) endpoints.
 
 ## Common mistakes
 - Sending both `agent_id` and `agent_image_url`.
-- Using `/liveai/sessions` when you want a hosted room.
-- Expecting a bulk list endpoint to handle all pagination. Best practice is to store `session_id`s in the developer's database upon creation.
+- Mixing up `/liveai/sessions` and `/liveai/rooms`.
 
 ## Validation checklist
 - [ ] Are requests hitting the correct base URL (`https://lemonslice.com/api`)?
 - [ ] Is the `X-API-Key` header present?
-- [ ] Is the code using the correct path prefix (`sessions` vs `rooms`) for the chosen integration?
+- [ ] Are Self-managed and Hosted endpoints strictly segregated?
+- [ ] Do the creation responses match the exact documented fields?

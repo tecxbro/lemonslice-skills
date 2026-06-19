@@ -6,6 +6,9 @@ license: MIT
 
 # Lemon Slice LiveKit Integration
 
+## Official docs
+- https://lemonslice.com/docs/livekit
+
 ## Use this skill when
 The developer is building a voice AI agent using the LiveKit Agents framework and wants to add a Lemon Slice avatar video track.
 
@@ -17,24 +20,29 @@ The developer is building a voice AI agent using the LiveKit Agents framework an
 ## Agent workflow
 1. **Detect language:** Identify if the project is Python or Node.js.
 2. **Install package:**
-   - Python: `livekit-agents[lemonslice]~=1.5` or `livekit-plugins-lemonslice`
-   - Node.js: `@livekit/agents-plugin-lemonslice`
+   - Python: `pip install "livekit-agents[lemonslice]"`
+   - Node.js: `npm install @livekit/agents-plugin-lemonslice`
 3. **Configure Avatar Session:**
-   - Initialize the `AvatarSession` from the plugin.
-   - Provide `agent_image_url` (or `agent_id`) and `agent_prompt`.
+   - Ensure the API key (`LEMONSLICE_API_KEY`) is kept server-side.
+   - Initialize `lemonslice.AvatarSession`.
 4. **Start Session:**
    - Await the `start()` method on the avatar, passing the LiveKit session and room context (e.g., `await avatar.start(session, room=ctx.room)`).
-5. **Handle lifecycle:**
-   - Wait for avatar readiness (`bot_ready` or participant join).
-   - Listen for RPC events over the data channel for errors or metrics.
+5. **Handle lifecycle & Events:**
+   - Participant join is not enough; wait for `bot_ready` as the explicit readiness signal.
+   - Listen for events over the data channel:
+     - `bot_ready`
+     - `idle_timeout`
+     - `error`
+     - `video_generation_error`
+     - `metric`
    - Gracefully disconnect the room to shut down the avatar.
 
 ## Common mistakes
 - Trying to manually call Lemon Slice REST APIs to create the session. The LiveKit plugin handles session creation internally.
 - Putting the `LEMONSLICE_API_KEY` in the frontend client. It must remain in the backend/agent server environment variables.
-- Using hosted session APIs alongside LiveKit. This is a self-managed integration.
+- Treating standard participant join as readiness instead of waiting for `bot_ready`.
 
 ## Validation checklist
-- [ ] Is the correct LiveKit plugin installed for the language?
+- [ ] Is the correct, officially documented LiveKit plugin installed?
 - [ ] Is `LEMONSLICE_API_KEY` in the server environment?
-- [ ] Is the avatar started within the LiveKit room context?
+- [ ] Is the code waiting for the `bot_ready` signal before assuming readiness?

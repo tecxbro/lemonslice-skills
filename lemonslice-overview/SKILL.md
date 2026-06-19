@@ -6,6 +6,9 @@ license: MIT
 
 # Lemon Slice Overview
 
+## Official docs
+- https://lemonslice.com/docs/introduction.md
+
 ## Use this skill when
 You need to understand what Lemon Slice is, how it works, and what integration options are available before deciding how to build with it.
 

@@ -6,6 +6,10 @@ license: MIT
 
 # Lemon Slice Hosted Pipeline
 
+## Official docs
+- https://lemonslice.com/docs/hosted/overview.md
+- https://lemonslice.com/docs/api-reference/create-hosted-session
+
 ## Use this skill when
 The developer wants Lemon Slice to handle the entire AI pipeline (STT, LLM, TTS, avatar), and the backend needs to create/manage these sessions.
 
@@ -18,22 +22,29 @@ The developer wants Lemon Slice to handle the entire AI pipeline (STT, LLM, TTS,
 1. **Backend Session Creation:**
    - Call `POST /api/liveai/rooms` to create a hosted session.
    - Include `X-API-Key` in headers.
-   - Provide `agent_id` OR `agent_image_url`, plus `agent_prompt`.
-   - Optionally configure `idle_timeout` (defaults to 60s).
-2. **Session Status:**
-   - The creation endpoint returns a `session_id`.
-   - Poll `GET /api/liveai/rooms/{session_id}` to check status (`QUEUED` -> `ACTIVE` -> `COMPLETED`).
-3. **Handoff to Frontend:**
-   - The backend must return the connection credentials (Daily room URL and token) to the frontend.
-4. **Data Management:**
-   - Store the `session_id` in your own database at creation time for pagination and filtering later, as bulk list APIs may be limited.
+   - The creation body requires ONLY `agent_id` (unless official docs state otherwise). Do not pass unsupported fields like `agent_image_url`, `agent_prompt`, or `idle_timeout` unless explicitly verified.
+2. **Handle Response:**
+   - The response must include:
+     - `room_url`
+     - `token`
+     - `image_url`
+     - `session_id`
+3. **Session Status:**
+   - The statuses are:
+     - `QUEUED`
+     - `ACTIVE`
+     - `COMPLETED`
+     - `TIMED_OUT`
+     - `FAILED`
+4. **Handoff to Frontend:**
+   - The backend must return the connection credentials to the frontend so it can join the Daily room.
 
 ## Common mistakes
 - Using `/api/liveai/sessions` (Self-Managed) instead of `/api/liveai/rooms` (Hosted).
 - Exposing the `X-API-Key` to the frontend to let the frontend create sessions. The backend must create the session.
-- Trying to manually orchestrate audio routing. In hosted mode, Lemon Slice handles all audio/video logic.
+- Sending unverified properties in the creation payload.
 
 ## Validation checklist
-- [ ] Is the session created via `POST /api/liveai/rooms` from a secure backend?
-- [ ] Does the backend pass the connection credentials securely to the frontend client?
-- [ ] Are session IDs stored locally for future reference?
+- [ ] Is the session created via `POST /api/liveai/rooms`?
+- [ ] Is `agent_id` the primary required field used?
+- [ ] Are all unsupported hosted fields removed from the payload?
