@@ -5,13 +5,13 @@ Agent skills for building with Lemon Slice.
 ## Install
 
 ```bash
-npx skills add <owner>/lemonslice-skills
+npx skills add tecxbro/lemonslice-skills
 ```
 
 ## Install one skill
 
 ```bash
-npx skills add <owner>/lemonslice-skills --skill lemonslice-livekit
+npx skills add tecxbro/lemonslice-skills --skill lemonslice-livekit
 ```
 
 ## Skills

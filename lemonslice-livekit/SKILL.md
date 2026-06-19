@@ -21,7 +21,7 @@ The developer is building a voice AI agent using the LiveKit Agents framework an
 1. **Detect language:** Identify if the project is Python or Node.js.
 2. **Install package:**
    - Python: `pip install "livekit-agents[lemonslice]"`
-   - Node.js: `npm install @livekit/agents-plugin-lemonslice`
+   - Node.js: `npm install @livekit/agents-plugin-lemonslice` (or `pnpm add` - exactly as documented in the LiveKit Node.js tab)
 3. **Configure Avatar Session:**
    - Ensure the API key (`LEMONSLICE_API_KEY`) is kept server-side.
    - Initialize `lemonslice.AvatarSession` with `agent_image_url` or `agent_id`.

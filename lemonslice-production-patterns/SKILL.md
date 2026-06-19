@@ -30,7 +30,7 @@ You are just starting to build a prototype. Establish the core functionality usi
    - Set client-side startup timeouts (if `bot_ready` does not fire, fallback/retry).
    - Check idle timeout and GPU timeout configurations.
 3. **Session Lifecycle Management:**
-   - Follow documented timeout language rather than assuming a hard 1-hour maximum duration unless strictly defined.
+   - Timeouts vary by path. Best Practices lists idle timeout default 60s and GPU timeout default 30min; LiveKit docs also mention a 1-hour maximum session duration. Do not assume one timeout applies to every integration path.
    - Implement cleanup logic to terminate sessions.
 
 ## Common mistakes
