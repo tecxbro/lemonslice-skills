@@ -109,8 +109,12 @@ Creates a self-managed session that takes avatar audio and returns synchronized 
 
 **Required body fields:**
 - `transport_type`
-- `properties`
 - exactly one of `agent_id` or `agent_image_url`
+
+**Transport properties:**
+- For `transport_type: "livekit"`, include `properties.livekit_url` and `properties.livekit_token`.
+- For `transport_type: "daily"`, `properties.daily_room_url` and `properties.daily_token` may be supplied. If `daily_room_url` is omitted, Lemon Slice can create a Daily room at additional cost.
+- Do not omit `properties` unless the selected transport’s documented behavior allows it.
 
 **Allowed `transport_type` values:**
 - `livekit`
@@ -322,7 +326,7 @@ Send a control event to an active self-managed session.
 **Rules:**
 - The REST control endpoint is self-managed only.
 - Do not invent `POST /liveai/rooms/{session_id}/control`.
-- Actions are enterprise-only and must be onboarded for the avatar.
+- Action triggers must be supported/onboarded for the target avatar. Verify the current actions documentation before relying on a specific action name.
 - Wait until avatar/session readiness before sending actions.
 - Avoid overlapping action triggers unless the app has an action dispatcher.
 - Image update resets the model and may interrupt currently playing audio.
@@ -391,6 +395,8 @@ Retrieve current status of a hosted session.
 
 **Path parameter:**
 `session_id` - Use the `session_id` returned by `POST /liveai/rooms`.
+
+**Naming note:** The prose docs call this path parameter `session_id`; the OpenAPI spec may label the same path parameter as `room_id`. Use the `session_id` returned by `POST /liveai/rooms`, not the Daily room URL or room slug.
 
 **Do not use:** Daily room slug, full room_url, or self-managed session_id from `/liveai/sessions`.
 
