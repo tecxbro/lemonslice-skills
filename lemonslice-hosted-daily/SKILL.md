@@ -159,7 +159,7 @@ Meaning: the session ended because of inactivity.
 
 Required behavior:
 
-- transition to `ended` or `idle_ended`
+- transition to `ended`
 - leave the Daily room if still connected
 - clear timers
 - show restart/retry UI
