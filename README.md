@@ -27,7 +27,7 @@ npx skills add tecxbro/lemonslice-skills --skill lemonslice-livekit
 | lemonslice-hosted-daily        | Build a Daily frontend for hosted Lemon Slice sessions                 |
 | lemonslice-widget              | Embed and control the Lemon Slice widget                               |
 | lemonslice-api-reference       | Use Lemon Slice REST APIs correctly                                    |
-| lemonslice-control-actions     | Control sessions, actions, image updates, and termination              |
+| lemonslice-control-actions     | Advanced runtime control: self-managed REST controls, LiveKit tool-call actions, Hosted Daily app-message controls, image/prompt updates, and termination |
 | lemonslice-production-patterns | Make Lemon Slice integrations production-ready                         |
 
 This is official Lemon Slice work.
