@@ -52,6 +52,8 @@ Do not use Widget when:
 <script type="module" src="https://unpkg.com/@lemonsliceai/lemon-slice-widget"></script>
 ```
 
+The LemonSlice agent must already exist in the LemonSlice web app. Platform embed guides assume the agent is available on the required LemonSlice plan.
+
 * replace `AGENT_ID_HERE`
 * `agent-id` is required
 * script should be loaded once
@@ -119,7 +121,7 @@ export {};
 
 Shopify admin → Online Store → Themes → active theme → Edit code → layout/theme.liquid
 
-Add the embed inside `<body>`, usually near closing `</body>`.
+Add the embed inside the `<body>` tag in `layout/theme.liquid`, before the first existing `<script>` tag.
 
 ```liquid
 <lemon-slice-widget agent-id="AGENT_ID_HERE"></lemon-slice-widget>
@@ -136,7 +138,7 @@ Add the embed inside `<body>`, usually near closing `</body>`.
 * use Code Injection
 * site-wide injection for whole site
 * page-level injection for one page
-* published site must be checked, editor preview may not be enough
+* Use Page Settings → Advanced → Page header code injection for the page-level embed. Verify on the live site because the widget may not display in editor preview.
 * do not inject duplicate script
 * do not expose API keys
 
@@ -150,7 +152,7 @@ Add the embed inside `<body>`, usually near closing `</body>`.
 Wix Dashboard → Settings → Custom Code / Advanced Custom Code
 
 * add the widget tag and script
-* configure it to load on all pages if persistent widget is desired
+* Recommended: select All pages and Load code once so the widget persists across pages. Avoid selecting only certain pages unless intentional, because the agent may restart when users navigate.
 * publish the site
 * verify live site
 * avoid duplicate per-page embeds
@@ -259,6 +261,8 @@ curl -X GET "https://lemonslice.com/api/liveai/rooms/SESSION_ID" \
 * do this from backend/admin tooling only
 * never expose `X-API-Key` in browser code
 * do not use `/liveai/sessions` for Widget metadata
+
+For completed sessions, the response can include additional metadata such as credits used and transcript.
 
 ## Common mistakes
 
