@@ -23,7 +23,7 @@ You need to programmatically control an active avatar session, such as triggerin
    - Always wait for the avatar to join and emit `bot_ready` before sending controls or actions to avoid race conditions.
 2. **Triggering Actions (REST):**
    - Actions like `wave` or `celebrate` can be triggered explicitly via the control endpoint.
-   - Use `POST /api/liveai/sessions/{session_id}/control` with the `X-API-Key` header.
+   - Use `POST /liveai/sessions/{session_id}/control` with the `X-API-Key` header.
    - Body format:
      ```json
      {
