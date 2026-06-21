@@ -6,6 +6,12 @@ license: MIT
 
 # Lemon Slice LiveKit Integration
 
+## Official docs
+- https://lemonslice.com/docs/livekit/index.md
+- https://lemonslice.com/docs/examples/livekit-app-python.md
+- https://lemonslice.com/docs/examples/livekit-app-nodejs.md
+- https://lemonslice.com/docs/reference/authentication.md
+
 ## Use this skill when
 Use this only after `lemonslice-integration-choice` selected LiveKit.
 

@@ -6,6 +6,12 @@ license: MIT
 
 # Lemon Slice Pipecat Integration
 
+## Official docs
+- https://lemonslice.com/docs/pipecat/index.md
+- https://lemonslice.com/docs/examples/pipecat-app.md
+- https://lemonslice.com/docs/reference/overview.md
+- https://lemonslice.com/docs/reference/best-practices.md
+
 ## Use this skill when
 - Router selected Pipecat.
 - Repo is a Pipecat Python agent project.

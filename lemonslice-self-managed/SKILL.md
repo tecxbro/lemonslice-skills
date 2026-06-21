@@ -6,6 +6,10 @@ license: MIT
 
 # Lemon Slice Self-Managed Pipeline
 
+## Official docs
+- https://lemonslice.com/docs/api-reference/create-self-managed-session
+- https://lemonslice.com/docs/api-reference/get-self-managed-session
+
 ## Use this skill when
 - `lemonslice-integration-choice` has selected Self-Managed.
 - The developer owns STT, LLM, TTS, turn-taking, orchestration, and transport/session handling.

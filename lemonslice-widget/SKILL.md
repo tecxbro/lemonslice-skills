@@ -6,6 +6,12 @@ license: MIT
 
 # Lemon Slice Widget Integration
 
+## Official docs
+- https://lemonslice.com/docs/widget/overview.md
+- https://lemonslice.com/docs/widget/customization.md
+- https://lemonslice.com/docs/widget/control.md
+- https://lemonslice.com/docs/widget/embed-guides/nextjs.md
+
 ## Use this skill when
 - Router selected Widget.
 - User wants a no-backend website embed.

@@ -6,6 +6,12 @@ license: MIT
 
 # Lemon Slice Hosted Pipeline Backend
 
+## Official docs
+- https://lemonslice.com/docs/hosted/overview.md
+- https://lemonslice.com/docs/api-reference/create-hosted-session.md
+- https://lemonslice.com/docs/api-reference/get-hosted-session.md
+- https://lemonslice.com/docs/hosted/integrations/daily-room-integration.md
+
 ## Use this skill when
 The developer wants Lemon Slice to handle the entire AI pipeline (STT, LLM, TTS, avatar), and the backend needs to create/manage these sessions.
 

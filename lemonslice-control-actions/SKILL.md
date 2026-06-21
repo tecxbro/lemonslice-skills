@@ -6,6 +6,13 @@ license: MIT
 
 # LemonSlice Control Actions
 
+## Official docs
+- https://lemonslice.com/docs/api-reference/control-self-managed-session.md
+- https://lemonslice.com/docs/reference/actions.md
+- https://lemonslice.com/docs/openapi.json
+- https://lemonslice.com/docs/hosted/integrations/daily-room-integration.md
+- https://lemonslice.com/docs/widget/control.md
+
 ## Use this skill when
 - A LemonSlice session already exists or the integration path is already selected.
 - The task is runtime control, termination, action triggering, image updates, prompt updates, Hosted Daily app-message controls, Widget methods, or race-condition handling.

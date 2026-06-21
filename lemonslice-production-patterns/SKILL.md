@@ -6,6 +6,17 @@ license: MIT
 
 # Lemon Slice Production Patterns
 
+## Official docs
+- https://lemonslice.com/docs/llms.txt
+- https://lemonslice.com/docs/reference/best-practices.md
+- https://lemonslice.com/docs/reference/authentication.md
+- https://lemonslice.com/docs/reference/overview.md
+- https://lemonslice.com/docs/livekit/index.md
+- https://lemonslice.com/docs/pipecat/index.md
+- https://lemonslice.com/docs/hosted/overview.md
+- https://lemonslice.com/docs/hosted/integrations/daily-room-integration.md
+- https://lemonslice.com/docs/api-reference/create-self-managed-session.md
+
 ## Use this skill when
 Use this after the selected Lemon Slice integration already works and needs production hardening.
 

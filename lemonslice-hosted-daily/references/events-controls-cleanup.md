@@ -64,7 +64,15 @@ Optional events to surface:
 
 - `user_transcription`
 - `agent_transcription`
-- image or appearance update events if the app supports them
+
+### Image-change events
+
+Handle these if the app supports runtime image updates:
+
+- `image_change_requested`
+- `image_created`
+- `image_change_complete`
+- `image_change_error`
 
 ## Controls
 Use Daily app messages for hosted-agent controls and chat.

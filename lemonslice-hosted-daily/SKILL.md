@@ -6,6 +6,13 @@ license: MIT
 
 # Lemon Slice Hosted Daily Frontend
 
+## Official docs
+- https://lemonslice.com/docs/llms.txt
+- https://lemonslice.com/docs/hosted/overview.md
+- https://lemonslice.com/docs/hosted/integrations/daily-room-integration.md
+- https://lemonslice.com/docs/examples/hosted-daily-app.md
+- https://lemonslice.com/docs/reference/best-practices.md
+
 ## Use this skill when
 - The app is building a custom browser, React, or Next.js frontend.
 - Lemon Slice Hosted Pipeline is selected.
