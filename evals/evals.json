@@ -1,0 +1,65 @@
+{
+  "skill_name": "lemonslice-skills",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add Lemon Slice to my LiveKit agent. The repo has a Python worker using livekit-agents, AgentSession, JobContext, and ctx.room. Tell me what files to edit and what to add.",
+      "expected_output": "Routes through lemonslice-integration-choice to lemonslice-livekit, identifies Python LiveKit, avoids hosted/widget/self-managed raw REST, includes package install, AvatarSession wiring, server-only LEMONSLICE_API_KEY, bot_ready readiness, and cleanup.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Embed Lemon Slice widget in my Next.js app. I just want the prebuilt website widget on every page, no backend.",
+      "expected_output": "Routes to lemonslice-widget, not hosted-daily or self-managed. Gives Next.js widget placement, agent-id, script loading once, no API key in frontend, and optional TypeScript custom element declaration.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Create a hosted Lemon Slice Daily room from my backend and return the room URL and token to my React frontend.",
+      "expected_output": "Routes to lemonslice-hosted as backend primary and lemonslice-hosted-daily as secondary. Uses POST /api/liveai/rooms with server-side X-API-Key and agent_id only. Returns room_url, token, image_url, session_id safely.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "My backend already returns room_url and token from Lemon Slice. Build the React UI that joins Daily and waits until the avatar is ready.",
+      "expected_output": "Routes to lemonslice-hosted-daily, not lemonslice-hosted backend creation. Uses Daily join with room_url/token, waits for bot_ready via app-message, has startup timeout, handles idle_timeout, daily_error, video_generation_error, participant-left, cleanup, and retry with fresh credentials.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "My Pipecat bot uses Daily transport. Add Lemon Slice avatar video to it.",
+      "expected_output": "Routes to lemonslice-pipecat, explicitly avoids confusing Pipecat Daily with Hosted Daily. Includes pipecat-ai[lemonslice], LemonSliceTransport, LemonSliceNewSessionRequest, optional daily_room_url/daily_token behavior, bot/avatar/user participant model, and cleanup.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "I have my own STT, LLM, and TTS backend, not LiveKit or Pipecat. I need to create a Lemon Slice avatar session over Daily using REST.",
+      "expected_output": "Routes to lemonslice-self-managed or lemonslice-api-reference for raw REST. Uses POST /api/liveai/sessions, transport_type daily, properties, exactly one of agent_id or agent_image_url, server-side X-API-Key, stores session_id, and does not use /api/liveai/rooms.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "The avatar should wave when the user says hello and celebrate when the user finishes signup. We already have the Lemon Slice session working.",
+      "expected_output": "Routes to lemonslice-control-actions after confirming selected path. Waits for readiness before controls, uses supported action allowlist, avoids LLM-invented action names, maps tool calls to supported actions, and avoids overlapping action triggers.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "Make this Lemon Slice integration production-ready. It works locally but sometimes hangs forever and we are not sure if the API key is safe.",
+      "expected_output": "Routes to lemonslice-production-patterns as production audit. Checks server-only API key, no frontend X-API-Key, bot_ready readiness, startup timeout, idle/GPU/provider timeouts, cleanup, disconnect handling, safe logging, retries, and latency budget.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "Debug my Lemon Slice API calls. I am calling /api/liveai/rooms but I own STT and TTS myself and expected only a session_id.",
+      "expected_output": "Routes to lemonslice-api-reference or lemonslice-self-managed. Flags endpoint-family mixup: developer-owned STT/TTS should use /api/liveai/sessions, while /api/liveai/rooms is Hosted Pipeline. Explains expected response fields.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "What is Lemon Slice and which skill should I use? I am not sure whether I need LiveKit, Pipecat, Hosted, or Widget.",
+      "expected_output": "Routes to lemonslice-overview and/or lemonslice-integration-choice. Explains LemonSlice as avatar/video layer, what it is not, why multiple paths exist, and then asks or routes based on STT/LLM/TTS ownership and framework evidence.",
+      "files": []
+    }
+  ]
+}

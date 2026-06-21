@@ -1,6 +1,6 @@
 ---
 name: lemonslice-hosted-daily
-description: Build a Daily frontend for hosted Lemon Slice sessions.
+description: Build React, Next.js, or browser Daily frontends for LemonSlice Hosted Pipeline sessions. Use this when an app backend already returns hosted Daily join material (`room_url`, `token`, optional `image_url`, `session_id`) and the frontend must join Daily, wait for `bot_ready` via `app-message`, manage call state, send `chat-msg` or `force-end`, handle `idle_timeout`, `daily_error`, `video_generation_error`, participant leave, retries, and cleanup. Do not use for backend room creation or raw LemonSlice REST calls.
 license: MIT
 ---
 

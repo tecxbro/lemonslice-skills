@@ -1,6 +1,6 @@
 ---
 name: lemonslice-livekit
-description: Add Lemon Slice avatars to LiveKit Agents.
+description: Add LemonSlice avatars to LiveKit Agents. Use this when the repo uses LiveKit Agents, `livekit-agents`, `@livekit/agents`, `AgentSession`, `JobContext`, `ctx.room`, or the user asks to add LemonSlice to a LiveKit voice/video agent. Covers official package install, Python vs Node detection, `AvatarSession`, `agent_id` vs `agent_image_url`, `bot_ready`, LiveKit events, shutdown, and server-only API key handling. Do not use for Pipecat, Hosted, Widget, or raw REST unless the router selected LiveKit.
 license: MIT
 ---
 
@@ -30,6 +30,17 @@ Do not use this for:
 - hosted LemonSlice sessions
 - widget/no-backend embeds
 - raw self-managed REST work unless it is explicitly part of a LiveKit transport integration
+
+## Expected output
+
+When editing a repo, produce:
+- the exact dependency command for the detected package manager
+- the exact LiveKit worker file or files to edit
+- the minimal LemonSlice wiring needed for the selected language
+- server-only environment variable changes
+- readiness handling for `bot_ready`
+- shutdown and cleanup handling
+- a short validation checklist
 
 ## Detect Python vs Node LiveKit project
 

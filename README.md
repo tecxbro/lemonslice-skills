@@ -8,6 +8,10 @@ Agent skills for building with Lemon Slice.
 npx skills add tecxbro/lemonslice-skills
 ```
 
+## Routing rule
+
+For vague requests like “add LemonSlice to my app,” use `lemonslice-integration-choice` first. It selects the right path before implementation so agents do not confuse LiveKit, Pipecat, Self-Managed, Hosted, Hosted Daily, Widget, raw API, and production-hardening work.
+
 ## Install one skill
 
 ```bash

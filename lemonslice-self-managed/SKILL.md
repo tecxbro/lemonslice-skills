@@ -1,14 +1,14 @@
 ---
 name: lemonslice-self-managed
-description: Build with Lemon Slice as the avatar/video layer in a custom developer-owned STT/LLM/TTS stack.
+description: Build self-managed LemonSlice sessions for custom developer-owned STT/LLM/TTS stacks. Use this when the user owns the agent pipeline and needs backend REST setup with `POST /api/liveai/sessions`, `GET /api/liveai/sessions/{session_id}`, `transport_type: livekit|daily`, `properties`, `agent_id` or `agent_image_url`, status handling, and server-side `X-API-Key`. Do not use for official LiveKit/Pipecat plugins, Hosted `/liveai/rooms`, Widget, or Hosted Daily frontend.
 license: MIT
 ---
 
 # Lemon Slice Self-Managed Pipeline
 
 ## Official docs
-- https://lemonslice.com/docs/api-reference/create-self-managed-session
-- https://lemonslice.com/docs/api-reference/get-self-managed-session
+- https://lemonslice.com/docs/api-reference/create-self-managed-session.md
+- https://lemonslice.com/docs/api-reference/get-self-managed-session.md
 
 ## Use this skill when
 - `lemonslice-integration-choice` has selected Self-Managed.

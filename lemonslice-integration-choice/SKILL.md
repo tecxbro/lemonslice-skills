@@ -1,6 +1,6 @@
 ---
 name: lemonslice-integration-choice
-description: MANDATORY ROUTER. Must run first to choose the correct Lemon Slice path (Self-Managed, LiveKit, Pipecat, Hosted, Widget).
+description: Mandatory router for LemonSlice integration requests. Use this first whenever the user says “add LemonSlice,” “integrate LemonSlice,” “add an avatar,” “video agent,” “widget,” “Daily,” “LiveKit,” “Pipecat,” “hosted,” or gives a vague LemonSlice task. It chooses the correct primary path before any implementation: LiveKit, Pipecat, Self-Managed, Hosted, Hosted Daily, Widget, API Reference, Control Actions, or Production Patterns.
 license: MIT
 ---
 

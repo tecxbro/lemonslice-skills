@@ -1,6 +1,6 @@
 ---
 name: lemonslice-production-patterns
-description: "Production-readiness checklist for Lemon Slice integrations after the feature works."
+description: Production-readiness audit for LemonSlice integrations after the basic feature works. Use this for security, server-only API keys, backend/frontend separation, `bot_ready`, startup timeout, idle/GPU/provider timeouts, cleanup, explicit termination, Daily/LiveKit disconnects, Pipecat task failures, latency budgeting across STT/LLM/TTS/avatar/WebRTC, logging, observability, retries, and deployment hardening. Usually use as a secondary skill after LiveKit, Pipecat, Hosted, Hosted Daily, Self-Managed, API Reference, or Widget is selected.
 license: MIT
 ---
 

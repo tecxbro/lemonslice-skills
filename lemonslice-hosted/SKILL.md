@@ -1,6 +1,6 @@
 ---
 name: lemonslice-hosted
-description: Create and manage Lemon Slice hosted backend sessions.
+description: Create and manage LemonSlice Hosted Pipeline backend sessions. Use this when LemonSlice should manage STT/LLM/TTS/avatar behavior and the developer backend needs to call `POST /api/liveai/rooms`, store `session_id`, validate `room_url`, `token`, `image_url`, poll `GET /api/liveai/rooms/{session_id}`, and return safe Daily join material to a frontend. Do not use for self-managed `/liveai/sessions`, LiveKit, Pipecat, Widget, or frontend Daily UI.
 license: MIT
 ---
 

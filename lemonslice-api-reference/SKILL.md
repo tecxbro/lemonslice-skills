@@ -1,6 +1,6 @@
 ---
 name: lemonslice-api-reference
-description: Use Lemon Slice REST APIs correctly.
+description: Use LemonSlice REST APIs correctly from backend/server code. Use this for raw API correctness, OpenAPI validation, base URL/auth, endpoint-family debugging, request/response fields, list/get/status polling, and common mixups between Self-Managed `/liveai/sessions` and Hosted `/liveai/rooms`. Covers `X-API-Key`, `POST /liveai/sessions`, `POST /liveai/rooms`, status values, control endpoint, pagination, and response-shape validation. Do not use for frontend Widget, Hosted Daily UI, LiveKit plugin, or Pipecat pipeline implementation.
 license: MIT
 ---
 

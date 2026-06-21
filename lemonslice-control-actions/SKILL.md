@@ -1,6 +1,6 @@
 ---
 name: lemonslice-control-actions
-description: Advanced runtime control for LemonSlice sessions: self-managed REST controls, LiveKit tool-call actions, Hosted Daily app-message controls, image/prompt updates, readiness, and race-condition avoidance.
+description: Advanced runtime control for already-created LemonSlice sessions. Use this when the user needs self-managed REST controls (`POST /api/liveai/sessions/{session_id}/control`), `terminate`, `update-image`, prompt updates, `pose-trigger`, LiveKit LLM tool-call actions, Hosted Daily `sendAppMessage` controls (`chat-msg`, `/imagine`, `force-end`), Widget control boundaries, readiness before control, action allowlists, and race-condition avoidance. Do not use for choosing a path or creating the initial session.
 license: MIT
 ---
 

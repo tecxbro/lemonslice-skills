@@ -1,6 +1,6 @@
 ---
 name: lemonslice-widget
-description: Embed and control the Lemon Slice widget.
+description: Embed and control the no-backend LemonSlice web widget. Use this when the user wants a fast website embed for HTML, Next.js, Shopify, Squarespace, Wix, marketing sites, demos, or evaluation using `<lemon-slice-widget>` and the hosted widget script. Covers `agent-id`, script placement, customization attributes, widget methods like `micOn`, `mute`, `sendMessage`, and backend-only metadata calls. Do not use for LiveKit, Pipecat, Self-Managed REST, Hosted Daily custom frontend, or any flow exposing `X-API-Key` in browser code.
 license: MIT
 ---
 
@@ -69,6 +69,8 @@ For App Router:
 * load script once
 * do not put on every page
 * add TypeScript custom-element declaration if needed
+
+For production Next.js apps, prefer `next/script` if the app’s lint or runtime rules discourage raw `<script>` tags in layouts.
 
 ```tsx
 export default function RootLayout({

@@ -1,6 +1,6 @@
 ---
 name: lemonslice-pipecat
-description: Add Lemon Slice avatars to Pipecat pipelines.
+description: Add LemonSlice avatars to Pipecat Python pipelines. Use this when the repo imports `pipecat`, uses `Pipeline`, `PipelineTask`, `PipelineParams`, Daily transport inside Pipecat, or the user mentions `LemonSliceTransport`, `LemonSliceNewSessionRequest`, `daily_room_url`, or `daily_token` in a Pipecat context. Covers `pipecat-ai[lemonslice]`, official imports, transport wiring, bot/avatar/user participant model, `bot_ready`, auto-created Daily rooms, shutdown, and error handling. Do not confuse Pipecat Daily transport with Hosted Daily.
 license: MIT
 ---
 
@@ -36,6 +36,18 @@ Do not use this when:
 
 > **Critical distinction to repeat:**
 > Pipecat may use Daily as its WebRTC transport, but Pipecat is not Hosted Daily. In Pipecat, the developer owns the bot pipeline. Hosted Daily means Lemon Slice manages the agent pipeline and returns a Daily room for a frontend to join.
+
+## Expected output
+
+When editing a repo, produce:
+- the exact dependency command for the detected Python package manager
+- the exact Pipecat bot or pipeline file to edit
+- the minimal `LemonSliceTransport` wiring
+- the correct `LemonSliceNewSessionRequest`
+- server-only environment variable changes
+- participant filtering notes for human, Pipecat bot, and LemonSlice avatar
+- readiness, error handling, and cleanup changes
+- a short validation checklist
 
 ## What Pipecat + Lemon Slice means
 * Pipecat remains the conversational agent framework.

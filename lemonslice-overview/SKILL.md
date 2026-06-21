@@ -1,6 +1,6 @@
 ---
 name: lemonslice-overview
-description: Conceptual product map for Lemon Slice. Use this first to understand what Lemon Slice is, what it is not, why multiple integration paths exist, what each Lemon Slice skill is for, and where the agent should route next.
+description: Conceptual product map for LemonSlice. Use this when the user needs orientation before implementation: what LemonSlice is, what it is not, why LiveKit, Pipecat, Self-Managed, Hosted, Hosted Daily, and Widget paths exist, what each repo skill is for, and where to route next. Do not use this for code edits or endpoint payloads.
 license: MIT
 ---
 
