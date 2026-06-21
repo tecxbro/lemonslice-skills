@@ -29,14 +29,15 @@ Do not use this skill for:
 
 ## Official docs
 
-- https://lemonslice.com/docs/llms.txt
-- https://lemonslice.com/docs/reference/actions
-- https://lemonslice.com/docs/api-reference/control-self-managed-session
+- https://lemonslice.com/docs/api-reference/control-self-managed-session.md
+- https://lemonslice.com/docs/reference/actions.md
 - https://lemonslice.com/docs/openapi.json
-- https://lemonslice.com/docs/reference/best-practices
-- https://lemonslice.com/docs/hosted/overview
-- https://lemonslice.com/docs/hosted/integrations/daily-room-integration
-- https://lemonslice.com/docs/widget/control
+- https://lemonslice.com/docs/reference/best-practices.md
+- https://lemonslice.com/docs/livekit/index.md
+- https://lemonslice.com/docs/examples/avatars-tool-calling.md
+- https://lemonslice.com/docs/hosted/overview.md
+- https://lemonslice.com/docs/hosted/integrations/daily-room-integration.md
+- https://lemonslice.com/docs/widget/control.md
 
 ## Control surfaces
 
