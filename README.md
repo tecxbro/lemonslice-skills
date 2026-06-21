@@ -33,3 +33,5 @@ npx skills add tecxbro/lemonslice-skills --skill lemonslice-livekit
 This is official Lemon Slice work.
 License: MIT.
 This repo is built skill by skill.
+
+Each skill keeps `SKILL.md` focused on routing and guardrails. Deeper implementation details live in that skill’s `references/` folder and should be loaded only when relevant to the task.

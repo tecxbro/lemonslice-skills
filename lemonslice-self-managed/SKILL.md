@@ -6,10 +6,6 @@ license: MIT
 
 # Lemon Slice Self-Managed Pipeline
 
-## Official docs
-- https://lemonslice.com/docs/api-reference/create-self-managed-session
-- https://lemonslice.com/docs/api-reference/get-self-managed-session
-
 ## Use this skill when
 - `lemonslice-integration-choice` has selected Self-Managed.
 - The developer owns STT, LLM, TTS, turn-taking, orchestration, and transport/session handling.
@@ -38,149 +34,6 @@ Self-managed means the developer brings the AI pipeline:
 
 LemonSlice does not replace those pieces. LemonSlice receives the agent’s audio and returns synchronized avatar video/audio over the selected WebRTC transport.
 
-## Agent workflow
-1. Confirm routing
-   - Make sure `lemonslice-integration-choice` selected self-managed.
-   - If the repo uses LiveKit Agents, route to `lemonslice-livekit`.
-   - If the repo uses Pipecat, route to `lemonslice-pipecat`.
-
-2. Keep credentials server-side
-   - Store `LEMONSLICE_API_KEY` only in backend/agent-server env.
-   - Use `X-API-Key` from server-side code only.
-
-3. Choose transport
-   - Use `transport_type: "livekit"` or `transport_type: "daily"`.
-   - Do not invent other transport values.
-
-4. Choose avatar identity
-   - Provide exactly one of `agent_id` or `agent_image_url`.
-
-5. Build transport `properties`
-   - LiveKit requires `livekit_url` and `livekit_token`.
-   - Daily uses `daily_room_url` and `daily_token`; omitting room URL lets LemonSlice create one at extra cost.
-
-6. Add only documented optional fields
-   - `agent_prompt`
-   - `agent_idle_prompt`
-   - `idle_timeout`
-   - `response_done_timeout`
-   - `simulcast`
-
-7. Create session
-   - Call `POST /api/liveai/sessions`.
-   - Store returned `session_id`.
-
-8. Track lifecycle
-   - Poll `GET /api/liveai/sessions/{session_id}` if status is needed.
-   - Handle `QUEUED`, `ACTIVE`, `COMPLETED`, `TIMED_OUT`, and `FAILED`.
-
-9. Hand off control/actions
-   - For runtime actions, emotions, image updates, or termination, route to `lemonslice-control-actions`.
-
-## Endpoint family
-Self-managed uses `/liveai/sessions`.
-
-Hosted/Widget room flows use `/liveai/rooms`.
-
-Do not mix these endpoint families.
-
-## Create request examples
-
-#### LiveKit transport example
-```json
-{
-  "transport_type": "livekit",
-  "agent_id": "agent_abc123",
-  "properties": {
-    "livekit_url": "wss://example.livekit.cloud",
-    "livekit_token": "..."
-  }
-}
-```
-
-#### Daily transport example
-```json
-{
-  "transport_type": "daily",
-  "agent_image_url": "https://example.com/avatar.png",
-  "properties": {
-    "daily_room_url": "https://your-domain.daily.co/your-room",
-    "daily_token": "..."
-  }
-}
-```
-
-## Create session
-`POST /api/liveai/sessions` returns `session_id`.
-
-Store `session_id` in backend state. Use it for:
-- status polling
-- control/action calls
-- cleanup/termination flows
-
-## transport_type
-`transport_type` tells LemonSlice how the agent audio is delivered and how the synced A/V is returned.
-
-Allowed:
-- `livekit`
-- `daily`
-
-Not allowed:
-- `webrtc`
-- `browser`
-- `hosted`
-- `rooms`
-- `pipecat`
-- `tavus`
-- arbitrary provider names
-
-## transport properties
-`properties` contains transport-specific connection details.
-
-For `transport_type: "livekit"`:
-- `properties.livekit_url` is required.
-- `properties.livekit_token` is required.
-- `simulcast` is available only with LiveKit transport.
-
-For `transport_type: "daily"`:
-- `properties.daily_room_url` is optional.
-- `properties.daily_token` is optional.
-- If `daily_room_url` is omitted, LemonSlice can create a Daily room, with additional cost.
-- Daily recording config belongs inside Daily transport properties, not as generic top-level fields.
-
-## agent_id vs agent_image_url
-Provide exactly one avatar identity:
-
-- `agent_id`: use an existing LemonSlice agent.
-- `agent_image_url`: use a public image URL for zero-shot avatar creation.
-
-Never send both.
-Never send neither.
-Prefer a stable HTTPS URL for `agent_image_url`.
-
-## Optional fields
-| Field | Purpose | Notes |
-|---|---|---|
-| `agent_prompt` | Influences speaking-state expression/demeanor | High-level, not precise deterministic control |
-| `agent_idle_prompt` | Influences idle-state expression/demeanor | High-level idle behavior |
-| `idle_timeout` | Seconds before idle timeout | Default 60; negative disables idle timeout |
-| `response_done_timeout` | Seconds without new audio before response is treated complete | Useful for TTS providers without reliable end events |
-| `simulcast` | Publishes multiple video resolutions | LiveKit transport only |
-
-## Get session / status polling
-Use `GET /api/liveai/sessions/{session_id}` when the backend needs status or completion metadata.
-
-The response always includes `session_status`.
-
-When the session is completed, it may include `cost`.
-
-## Lifecycle states
-- `QUEUED`: session is waiting for a GPU container. Usually quick when warm capacity exists; cold start can take longer.
-- `ACTIVE`: avatar is live.
-- `COMPLETED`: session ended successfully. Completed responses may include `cost`.
-- `TIMED_OUT`: GPU container timed out.
-- `FAILED`: session ended with an error.
-
 ## API key handling
 The LemonSlice API key must stay in trusted backend/agent-server code.
 
@@ -193,7 +46,24 @@ Do not:
 
 Frontend code may receive app-owned session state, but never the LemonSlice API key.
 
-## When to route elsewhere
+## Endpoint family
+Self-managed uses `/liveai/sessions`.
+
+Hosted/Widget room flows use `/liveai/rooms`.
+
+Do not mix these endpoint families.
+
+## Avatar identity
+Provide exactly one avatar identity:
+
+- `agent_id`: use an existing LemonSlice agent.
+- `agent_image_url`: use a public image URL for zero-shot avatar creation.
+
+Never send both.
+Never send neither.
+Prefer a stable HTTPS URL for `agent_image_url`.
+
+## Routing elsewhere
 Route to `lemonslice-livekit` when:
 - the repo clearly uses LiveKit Agents
 - the user asks for the official LiveKit plugin
@@ -217,6 +87,11 @@ Route to `lemonslice-hosted-daily` when:
 
 Route to `lemonslice-control-actions` when:
 - the task is about actions, emotions, image updates, or termination
+
+## Reference files
+Load only the reference file needed for the task:
+
+- `references/session-payloads-status.md` — read for LiveKit/Daily JSON request examples, `transport_type`, `properties`, optional fields, get/status endpoint, and lifecycle states.
 
 ## Common mistakes
 - Using `/api/liveai/rooms` or `/api/liveai/rooms/{id}` for self-managed sessions.

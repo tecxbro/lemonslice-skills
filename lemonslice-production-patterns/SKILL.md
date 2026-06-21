@@ -1,429 +1,69 @@
 ---
 name: lemonslice-production-patterns
-description: "Production-readiness checklist for Lemon Slice integrations after the feature works."
+description: Audits production readiness for Lemon Slice integrations after the selected path works. Use for API key safety, backend/frontend separation, bot_ready readiness, startup timeout, cleanup, disconnects, latency, logging, and deployment hardening.
 license: MIT
 ---
 
 # Lemon Slice Production Patterns
 
-## Official docs
-
-- https://lemonslice.com/docs/llms.txt
-- https://lemonslice.com/docs/reference/best-practices.md
-- https://lemonslice.com/docs/reference/authentication.md
-- https://lemonslice.com/docs/reference/overview.md
-- https://lemonslice.com/docs/livekit/index.md
-- https://lemonslice.com/docs/pipecat/index.md
-- https://lemonslice.com/docs/hosted/overview.md
-- https://lemonslice.com/docs/hosted/integrations/daily-room-integration.md
-- https://lemonslice.com/docs/api-reference/create-self-managed-session.md
-- https://lemonslice.com/docs/api-reference/get-self-managed-session.md
-- https://lemonslice.com/docs/api-reference/control-self-managed-session.md
-- https://lemonslice.com/docs/api-reference/create-hosted-session.md
-- https://lemonslice.com/docs/api-reference/get-hosted-session.md
-- https://lemonslice.com/docs/openapi.json
-
 ## Use this skill when
-
-Use this skill after a Lemon Slice integration already works and needs production hardening.
+Use this after the selected Lemon Slice integration already works and needs production hardening.
 
 Use it for:
 - API key safety
 - backend/frontend separation
-- readiness and `bot_ready`
+- `bot_ready`
 - startup timeout
 - idle timeout
-- GPU timeout
-- cleanup and explicit session termination
+- cleanup
+- explicit termination
 - Daily disconnect handling
 - LiveKit disconnect handling
 - Pipecat pipeline error handling
 - latency budgeting
-- STT/LLM/TTS optimization
 - logging and observability
 
-This is usually a **secondary skill**, matching the router’s production-hardening route. The router already routes security, latency, reliability, deployment, cleanup, timeouts, `bot_ready`, disconnects, and error handling to this skill.
-
 ## Do not use this skill when
-
-Do not use this skill to build the first working integration.
+Do not use this to build the first working integration.
 
 Route first to:
-- `lemonslice-livekit` for LiveKit Agents
-- `lemonslice-pipecat` for Pipecat pipelines
-- `lemonslice-hosted` for hosted backend session creation
-- `lemonslice-hosted-daily` for frontend Daily room joining
-- `lemonslice-self-managed` for raw self-managed session setup
-- `lemonslice-api-reference` for endpoint correctness
-- `lemonslice-control-actions` for runtime actions, image updates, prompt updates, and termination details
+- `lemonslice-livekit`
+- `lemonslice-pipecat`
+- `lemonslice-hosted`
+- `lemonslice-hosted-daily`
+- `lemonslice-self-managed`
+- `lemonslice-widget`
+- `lemonslice-api-reference`
+- `lemonslice-control-actions`
 
-This skill audits production readiness after the selected path works.
-
-## What production-ready means
-
-A Lemon Slice integration is production-ready when:
-- credentials are server-only
-- frontend only receives safe session/join material
-- avatar readiness waits for `bot_ready`
-- startup cannot hang forever
-- idle/GPU/provider timeouts are understood
-- cleanup runs on all terminal paths
-- disconnects and provider errors are handled
-- latency is measured across STT, LLM, TTS, and avatar generation
-- logs support debugging without leaking secrets
-
-## Agent workflow
-
+## Production audit workflow
 1. Confirm the selected integration path.
-   - Inspect repo evidence.
-   - Identify LiveKit, Pipecat, Hosted backend, Hosted Daily frontend, Self-managed/API, Widget, or Control Actions.
-   - Do not treat the word “Daily” as automatically Hosted Daily.
-
 2. Audit credentials.
-   - `LEMONSLICE_API_KEY` must exist only in backend, agent, worker, or server environment.
-   - Browser/client/mobile code must never contain `LEMONSLICE_API_KEY` or `X-API-Key`.
-   - Do not log API keys, Daily tokens, LiveKit tokens, room credentials, or raw stack traces.
+3. Audit backend/frontend boundary.
+4. Audit readiness and `bot_ready`.
+5. Audit startup timeout.
+6. Audit lifecycle cleanup.
+7. Audit disconnect/error handling.
+8. Audit latency budget.
+9. Audit logging and observability.
 
-3. Audit readiness.
-   - Do not treat session creation, room join, participant join, or first media track as avatar readiness.
-   - Wait for `bot_ready`.
-   - Add startup timeout if `bot_ready` never arrives.
-   - On timeout, clean up and expose retry.
+## Core rules
+- `LEMONSLICE_API_KEY` stays server-side only.
+- `X-API-Key` is never used in frontend/browser/mobile code.
+- Frontend calls app backend, not Lemon Slice REST APIs directly.
+- Do not mark avatar active until `bot_ready`.
+- Do not wait forever for `bot_ready`; add startup timeout.
+- Cleanup must run on hangup, timeout, fatal error, disconnect, and component/process shutdown.
+- Do not log API keys, Daily tokens, LiveKit tokens, room credentials, or raw stack traces.
 
-4. Audit lifecycle.
-   - Cleanup must run on user hangup, startup timeout, idle timeout, fatal error, participant leave, Daily disconnect, LiveKit disconnect, Pipecat task cancellation, deployment shutdown, and process shutdown.
+## Reference files
+Load only the reference file needed for the audit:
 
-5. Audit timeouts.
-   - Check startup timeout.
-   - Check LemonSlice idle timeout.
-   - Check GPU timeout.
-   - Check third-party provider timeouts.
-
-6. Audit latency.
-   - Measure STT, LLM, TTS, avatar generation, and network separately.
-   - Do not invent hard FPS or response-time guarantees.
-
-7. Audit observability.
-   - Log safe session IDs, status transitions, time to `bot_ready`, timeout reason, disconnect reason, retry count, and terminal state.
-   - Redact all credentials.
-
-## Security and credential boundaries
-
-Rules:
-- Keep `LEMONSLICE_API_KEY` server-only.
-- Use `X-API-Key` only from trusted backend/server/agent code.
-- Never put `LEMONSLICE_API_KEY` in frontend env vars.
-- Never use `NEXT_PUBLIC_LEMONSLICE_API_KEY`.
-- Never call LemonSlice REST APIs directly from browser/client/mobile code.
-- Never return the LemonSlice API key to frontend code.
-- Never log API keys.
-- Treat hosted Daily `token`, LiveKit tokens, Daily tokens, and room credentials as sensitive join material.
-
-## Backend/frontend separation
-
-Backend responsibilities:
-- authenticate/authorize app user
-- call LemonSlice APIs with server-only `LEMONSLICE_API_KEY`
-- validate LemonSlice responses
-- store `session_id` and safe metadata
-- return only safe session/join material to frontend
-- reconcile terminal statuses where needed
-
-Frontend responsibilities:
-- call app backend, not LemonSlice directly
-- join LiveKit/Daily only with safe credentials returned by backend
-- listen for readiness/error/disconnect events
-- clear timers and credentials on terminal states
-- show retry UI when startup or runtime fails
-
-## Readiness and startup timeout
-
-Do not mark the avatar active until `bot_ready`.
-
-Not enough:
-- backend session created
-- `session_id` returned
-- hosted `room_url` / `token` returned
-- LiveKit room connected
-- Daily join succeeded
-- participant joined
-- first media track appeared
-
-Required behavior:
-- start in loading / waiting state
-- listen for `bot_ready`
-- clear startup timer when `bot_ready` arrives
-- transition to active only after `bot_ready`
-- if timeout fires, leave/disconnect room, terminate where supported, clear local state, and show retry
-
-## Timeout checklist
-
-Startup timeout:
-- app-defined
-- starts when waiting for avatar readiness
-- failure path must clean up and show retry
-
-Idle timeout:
-- default is 60 seconds where documented
-- negative idle timeout disables idle timeout
-- do not rely on idle timeout as the only cleanup mechanism
-
-GPU timeout:
-- default is 30 minutes where documented
-- do not assume sessions can run forever
-
-Third-party timeouts:
-- LiveKit room/session limits
-- Daily room/session behavior
-- STT provider timeout
-- LLM provider timeout
-- TTS provider timeout
-- hosting/serverless execution timeout
-
-## Cleanup and termination
-
-Cleanup triggers:
-- normal user hangup
-- frontend component unmount
-- startup timeout
-- `bot_ready` never arrives
-- `idle_timeout`
-- fatal `daily_error`
-- `video_generation_error`
-- participant leaves unexpectedly
-- Daily/WebRTC disconnect
-- LiveKit room disconnect
-- Pipecat task cancellation
-- STT/LLM/TTS failure
-- backend request timeout
-- process signal
-- deployment shutdown
-
-Cleanup actions:
-- stop accepting user input
-- clear timers
-- leave/disconnect Daily or LiveKit room where applicable
-- cancel agent/pipeline task where applicable
-- close async HTTP/session resources
-- clear stale room credentials/tokens
-- mark local session terminal or retryable
-- explicitly terminate LemonSlice session where the selected path supports it
-
-## Path-specific production checks
-
-### LiveKit
-
-Check:
-- `LEMONSLICE_API_KEY` is only in the LiveKit agent/server environment.
-- The app waits for `bot_ready`, not participant join.
-- The app handles LemonSlice data-channel events:
-  - `bot_ready`
-  - `idle_timeout`
-  - `error`
-  - `video_generation_error`
-  - `metric`
-- The app handles LiveKit disconnect paths:
-  - room disconnect
-  - participant disconnect
-  - agent shutdown
-  - process/deployment shutdown
-- The app handles AgentSession provider failures:
-  - STT failure
-  - LLM failure
-  - TTS failure
-- Metrics are recorded safely:
-  - `time_to_first_push`
-  - `tts_audio_delay`
-- Cleanup uses the correct shutdown path:
-  - `ctx.room.disconnect()` when ending the room connection
-  - `ctx.shutdown()` when stopping the Agent JobContext
-  - self-managed `terminate` when stopping only LemonSlice avatar generation
-
-### Pipecat
-
-Check:
-- `LEMONSLICE_API_KEY` is only in the Pipecat bot/server environment.
-- `LemonSliceTransport` is used inside the Pipecat pipeline.
-- Daily appearing in the project is not automatically Hosted Daily.
-- The participant model is correct:
-  - human user
-  - Pipecat bot participant
-  - LemonSlice avatar participant
-- The UI does not show the Pipecat bot participant as the avatar.
-- The implementation handles:
-  - `bot_ready` where available
-  - `idle_timeout`
-  - `daily_error`
-  - `video_generation_error`
-  - participant leave
-  - STT failure
-  - LLM failure
-  - TTS failure
-  - pipeline task cancellation
-  - Daily/WebRTC disconnect
-- Cleanup:
-  - stop/cancel Pipecat task
-  - leave/disconnect room where applicable
-  - close `aiohttp.ClientSession`
-  - terminate LemonSlice session where accessible
-  - do not invent private transport internals
-
-### Hosted backend
-
-Check:
-- Backend calls `POST /api/liveai/rooms`.
-- Backend uses `X-API-Key` server-side only.
-- Backend sends documented hosted create body with `agent_id`.
-- Backend validates response fields:
-  - `room_url`
-  - `token`
-  - `image_url`
-  - `session_id`
-- Backend stores `session_id`.
-- Backend does not log hosted Daily `token`.
-- Backend does not expose raw LemonSlice errors or stack traces.
-- Backend handles:
-  - 400 invalid request
-  - 401 missing/invalid API key
-  - 402 insufficient funds
-  - 403 unauthorized access
-  - 404 missing agent/session
-  - 500 LemonSlice/server error
-  - network timeout
-  - invalid response shape
-- Backend reconciles session status using hosted get endpoint where needed.
-
-### Hosted Daily frontend
-
-Check:
-- Frontend receives `room_url` and `token` from app backend.
-- Frontend does not call LemonSlice REST APIs.
-- Frontend treats Daily `token` as sensitive.
-- Daily join success does not equal avatar readiness.
-- UI enters active state only after `bot_ready`.
-- Frontend listens to Daily `app-message`.
-- Required LemonSlice hosted events:
-  - `bot_ready`
-  - `idle_timeout`
-  - `daily_error`
-  - `video_generation_error`
-- Required Daily lifecycle events:
-  - `participant-left`
-  - `left-meeting`
-  - Daily top-level `error`
-- Startup timeout calls `leave()` and shows retry.
-- Retry requests fresh backend credentials.
-- User hangup sends `force-end` where appropriate, then runs local cleanup.
-- Component unmount clears timers and leaves/destroys the call object.
-
-### Self-managed/API
-
-Check:
-- Self-managed uses `/liveai/sessions`, not `/liveai/rooms`.
-- Hosted uses `/liveai/rooms`, not `/liveai/sessions`.
-- LemonSlice REST calls are backend-only.
-- `session_id` is stored.
-- Status handling includes:
-  - `QUEUED`
-  - `ACTIVE`
-  - `COMPLETED`
-  - `TIMED_OUT`
-  - `FAILED`
-- Terminal statuses are:
-  - `COMPLETED`
-  - `TIMED_OUT`
-  - `FAILED`
-- Backend handles API errors and invalid response shape.
-- Control/termination uses documented self-managed control endpoint:
-  - `POST /liveai/sessions/{session_id}/control`
-  - body `{ "event": "terminate" }`
-- Do not invent hosted control endpoint:
-  - no `POST /liveai/rooms/{session_id}/control`
-
-## Latency budget
-
-Production latency is the full voice-agent path, not just LemonSlice.
-
-Audit:
-- user audio capture/network
-- VAD / turn detection
-- STT latency
-- LLM first-token latency
-- LLM full-response latency
-- tool/function-call latency
-- TTS first-byte latency
-- TTS streaming stability
-- avatar video generation
-- WebRTC/network delivery
-
-Rules:
-- Set a latency target before adding more features.
-- Measure each stage separately.
-- Optimize STT, LLM, and TTS first when responses feel slow.
-- Move slow tools or heavy reasoning off the critical path.
-- Use `response_done_timeout` only when the selected integration or provider behavior needs it.
-- Do not invent hard FPS or response-time guarantees.
-
-## Error handling
-
-Every production integration must convert low-level failures into safe app states.
-
-Required handling:
-- startup timeout
-- missing `bot_ready`
-- `idle_timeout`
-- `daily_error`
-- `video_generation_error`
-- LiveKit disconnect
-- Daily disconnect
-- participant left unexpectedly
-- STT failure
-- LLM failure
-- TTS failure
-- Pipecat task cancellation
-- LemonSlice API 400/401/402/403/404/500
-- network timeout
-- invalid LemonSlice response shape
-
-User-facing behavior:
-- do not expose stack traces
-- show retry where retry is safe
-- request fresh credentials on retry
-- do not reuse stale Daily room URL/token after terminal failure
-- mark terminal states clearly
-
-## Logging and observability
-
-Log safe fields:
-- selected integration path
-- app user/account id where allowed
-- app session id
-- LemonSlice `session_id`
-- status transitions
-- time to `bot_ready`
-- startup timeout fired/not fired
-- idle timeout
-- disconnect reason
-- terminal status
-- retry count
-- LemonSlice HTTP status code
-- provider error class
-- LiveKit `metric` fields where available:
-  - `time_to_first_push`
-  - `tts_audio_delay`
-
-Never log:
-- `LEMONSLICE_API_KEY`
-- `X-API-Key`
-- hosted Daily `token`
-- LiveKit token
-- Daily token
-- raw Authorization headers
-- full room credentials
-- raw stack traces in frontend responses
+- `references/security-readiness-cleanup.md` — read for secrets, frontend/backend boundary, `bot_ready`, startup timeout, idle timeout, GPU timeout, cleanup, and terminal paths.
+- `references/path-specific-checklists.md` — read for LiveKit, Pipecat, Hosted backend, Hosted Daily frontend, Self-managed/API, or Widget production checks.
+- `references/latency-observability.md` — read when optimizing latency or adding safe logs/metrics.
 
 ## Common mistakes
-
 - Treating a working demo as production-ready.
 - Exposing `LEMONSLICE_API_KEY` in frontend/client/mobile code.
 - Calling LemonSlice REST APIs directly from browser code.
@@ -444,7 +84,6 @@ Never log:
 - Inventing unsupported production metrics or guarantees.
 
 ## Validation checklist
-
 ### Routing
 - [ ] Did `lemonslice-integration-choice` already select the primary integration path?
 - [ ] Is this production hardening, not first implementation?
