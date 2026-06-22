@@ -34,6 +34,6 @@ npx skills add tecxbro/lemonslice-skills --skill lemonslice-livekit
 | lemonslice-control-actions     | Advanced runtime control: self-managed REST controls, LiveKit tool-call actions, Hosted Daily app-message controls, image/prompt updates, and termination |
 | lemonslice-production-patterns | Make Lemon Slice integrations production-ready                         |
 
-This is official Lemon Slice work.
+This is **NOT** the official Lemon Slice agent skills.
 License: MIT.
 This repo is built skill by skill.
