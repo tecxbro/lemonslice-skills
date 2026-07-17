@@ -20,22 +20,22 @@ SNAPSHOT_NOTES = [
     "Raw REST and framework plugin contracts are tracked separately.",
     "The current raw SessionInput uses exactly one of agent_id or agent_image_url for application/json requests.",
     "The current OpenAPI also declares multipart/form-data image upload and raw model/aspect_ratio fields; do not infer these fields when a future snapshot removes them.",
-    "The control operation declares security: [] while also documenting a 401 response; preserve this as a documentation conflict.",
+    "The control OpenAPI declares security: []; rendered control docs omit X-API-Key and disagree on response codes, so preserve the conflict.",
 ]
 
 
 def fetch(url: str, attempts: int = 3, timeout: int = 30) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": "lemonslice-skills-drift/2"})
-    last_error: Exception | None = None
+    last: Exception | None = None
     for attempt in range(attempts):
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 return response.read()
         except (urllib.error.URLError, TimeoutError) as exc:
-            last_error = exc
+            last = exc
             if attempt + 1 < attempts:
                 time.sleep(2**attempt)
-    raise RuntimeError(f"Unable to fetch {url}: {last_error}")
+    raise RuntimeError(f"Unable to fetch {url}: {last}")
 
 
 def resolve_ref(spec: dict[str, Any], value: Any) -> Any:
@@ -54,8 +54,13 @@ def resolve_ref(spec: dict[str, Any], value: Any) -> Any:
 
 def empty_summary() -> dict[str, Any]:
     return {
-        "required": [], "forbidden": [], "enums": {}, "constants": {},
-        "dependent_required": {}, "one_of": [], "any_of": [],
+        "required": [],
+        "forbidden": [],
+        "enums": {},
+        "constants": {},
+        "dependent_required": {},
+        "one_of": [],
+        "any_of": [],
     }
 
 
@@ -63,14 +68,16 @@ def merge(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     for key in ("required", "forbidden"):
         target[key] = sorted(set(target[key]) | set(incoming.get(key, [])))
     for name, values in incoming.get("enums", {}).items():
-        target["enums"][name] = sorted(set(target["enums"].get(name, [])) | set(values), key=str)
+        target["enums"][name] = sorted(
+            set(target["enums"].get(name, [])) | set(values), key=str
+        )
     target["constants"].update(incoming.get("constants", {}))
     for name, values in incoming.get("dependent_required", {}).items():
         target["dependent_required"][name] = sorted(
             set(target["dependent_required"].get(name, [])) | set(values)
         )
-    target["one_of"].extend(incoming.get("one_of", []))
-    target["any_of"].extend(incoming.get("any_of", []))
+    for key in ("one_of", "any_of"):
+        target[key].extend(incoming.get(key, []))
     if incoming.get("discriminator"):
         target["discriminator"] = incoming["discriminator"]
 
@@ -94,7 +101,8 @@ def clean(summary: dict[str, Any], schema: dict[str, Any] | None = None) -> dict
         result["enums"] = dict(sorted(summary["enums"].items()))
     if summary.get("dependent_required"):
         result["dependent_required"] = {
-            name: sorted(values) for name, values in sorted(summary["dependent_required"].items())
+            name: sorted(values)
+            for name, values in sorted(summary["dependent_required"].items())
         }
     for key in ("one_of", "any_of"):
         if summary.get(key):
@@ -122,11 +130,12 @@ def walk_raw(spec: dict[str, Any], schema: Any, seen: set[str] | None = None) ->
     negated = resolve_ref(spec, schema.get("not", {}))
     if isinstance(negated, dict):
         out["forbidden"] = sorted(x for x in negated.get("required", []) if isinstance(x, str))
-    dependencies = schema.get("dependentRequired", {})
-    if isinstance(dependencies, dict):
+    dependent = schema.get("dependentRequired", {})
+    if isinstance(dependent, dict):
         out["dependent_required"] = {
             name: sorted(x for x in values if isinstance(x, str))
-            for name, values in dependencies.items() if isinstance(name, str) and isinstance(values, list)
+            for name, values in dependent.items()
+            if isinstance(name, str) and isinstance(values, list)
         }
     discriminator = schema.get("discriminator")
     if isinstance(discriminator, dict):
@@ -152,15 +161,17 @@ def walk_raw(spec: dict[str, Any], schema: Any, seen: set[str] | None = None) ->
             for nested_name, values in nested["enums"].items():
                 out["enums"][f"{name}.{nested_name}"] = values
 
-    for member in schema.get("allOf", []) if isinstance(schema.get("allOf", []), list) else []:
-        merge(out, walk_raw(spec, member, set(seen)))
+    all_of = schema.get("allOf", [])
+    if isinstance(all_of, list):
+        for member in all_of:
+            merge(out, walk_raw(spec, member, set(seen)))
     for source, destination in (("oneOf", "one_of"), ("anyOf", "any_of")):
         variants = schema.get(source, [])
         if isinstance(variants, list):
             for raw in variants:
                 resolved = resolve_ref(spec, raw)
-                variant_schema = resolved if isinstance(resolved, dict) else {}
-                out[destination].append(clean(walk_raw(spec, variant_schema, set(seen)), variant_schema))
+                variant = resolved if isinstance(resolved, dict) else {}
+                out[destination].append(clean(walk_raw(spec, variant, set(seen)), variant))
     return out
 
 
@@ -174,14 +185,11 @@ def request_schema(spec: dict[str, Any], operation: dict[str, Any]) -> dict[str,
     content = body.get("content", {}) if isinstance(body, dict) else {}
     if not isinstance(content, dict):
         content = {}
-    media_types = {
-        content_type: walk_schema(
-            spec,
-            (resolve_ref(spec, media) or {}).get("schema", {})
-            if isinstance(resolve_ref(spec, media), dict) else {},
-        )
-        for content_type, media in sorted(content.items())
-    }
+    media_types: dict[str, Any] = {}
+    for content_type, raw_media in sorted(content.items()):
+        media = resolve_ref(spec, raw_media)
+        schema = media.get("schema", {}) if isinstance(media, dict) else {}
+        media_types[content_type] = walk_schema(spec, schema)
     result: dict[str, Any] = {
         "content_types": sorted(media_types),
         "media_types": media_types,
@@ -201,7 +209,11 @@ def normalize_security(spec: dict[str, Any], value: Any) -> list[str]:
             continue
         for name in requirement:
             scheme = schemes.get(name, {}) if isinstance(schemes, dict) else {}
-            names.add("X-API-Key" if isinstance(scheme, dict) and scheme.get("name") == "X-API-Key" else name)
+            names.add(
+                "X-API-Key"
+                if isinstance(scheme, dict) and scheme.get("name") == "X-API-Key"
+                else name
+            )
     return sorted(names)
 
 
@@ -228,31 +240,32 @@ def normalize(spec: dict[str, Any]) -> dict[str, Any]:
 
 def compare(snapshot: dict[str, Any], current: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    expected_paths, current_paths = snapshot.get("paths", []), current.get("paths", [])
-    added, removed = sorted(set(current_paths) - set(expected_paths)), sorted(set(expected_paths) - set(current_paths))
+    expected_paths, actual_paths = snapshot.get("paths", []), current.get("paths", [])
+    added = sorted(set(actual_paths) - set(expected_paths))
+    removed = sorted(set(expected_paths) - set(actual_paths))
     if added:
         errors.append(f"OpenAPI paths added: {', '.join(added)}")
     if removed:
         errors.append(f"OpenAPI paths removed: {', '.join(removed)}")
-    expected_ops, current_ops = snapshot.get("operations", {}), current.get("operations", {})
-    for name in sorted(set(current_ops) - set(expected_ops)):
+    expected_ops, actual_ops = snapshot.get("operations", {}), current.get("operations", {})
+    for name in sorted(set(actual_ops) - set(expected_ops)):
         errors.append(f"OpenAPI operation added: {name}")
-    for name in sorted(set(expected_ops) - set(current_ops)):
+    for name in sorted(set(expected_ops) - set(actual_ops)):
         errors.append(f"Missing operation: {name}")
-    for name in sorted(set(expected_ops) & set(current_ops)):
-        expected, actual = expected_ops[name], current_ops[name]
-        if expected.get("security") != actual.get("security"):
-            errors.append(f"{name} security changed: expected {expected.get('security')}, found {actual.get('security')}")
-        if expected.get("request") != actual.get("request"):
-            errors.append(
-                f"{name} request contract changed: expected {json.dumps(expected.get('request'), sort_keys=True)}, "
-                f"found {json.dumps(actual.get('request'), sort_keys=True)}"
-            )
-        if expected.get("responses", []) != actual.get("responses", []):
-            errors.append(
-                f"{name} response codes changed: expected {expected.get('responses', [])}, "
-                f"found {actual.get('responses', [])}"
-            )
+    for name in sorted(set(expected_ops) & set(actual_ops)):
+        expected, actual = expected_ops[name], actual_ops[name]
+        for key, label in (
+            ("security", "security"),
+            ("request", "request contract"),
+            ("responses", "response codes"),
+        ):
+            default: Any = {} if key == "request" else []
+            if expected.get(key, default) != actual.get(key, default):
+                errors.append(
+                    f"{name} {label} changed: expected "
+                    f"{json.dumps(expected.get(key), sort_keys=True)}, found "
+                    f"{json.dumps(actual.get(key), sort_keys=True)}"
+                )
     return errors
 
 
@@ -266,7 +279,13 @@ def check_skill_links(llms_text: str) -> list[str]:
     for skill in ROOT.glob("lemonslice-*/SKILL.md"):
         for raw in DOC_URL_RE.findall(skill.read_text(encoding="utf-8")):
             url = raw.rstrip(").,`'\"")
-            variants = {url, url.replace(".md", ""), url.replace("/index.md", ""), url + ".md", url.rstrip("/") + "/index.md"}
+            variants = {
+                url,
+                url.replace(".md", ""),
+                url.replace("/index.md", ""),
+                url + ".md",
+                url.rstrip("/") + "/index.md",
+            }
             if url not in exceptions and not (variants & indexed):
                 errors.append(f"{skill.relative_to(ROOT)} links to unindexed docs page: {url}")
     return errors
@@ -274,9 +293,24 @@ def check_skill_links(llms_text: str) -> list[str]:
 
 def write_report(path: Path, errors: list[str], current: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    lines = ["# LemonSlice documentation drift report", "", f"Status: {'FAIL' if errors else 'PASS'}", ""]
-    lines += (["## Drift detected", ""] + [f"- {error}" for error in errors]) if errors else ["No tracked OpenAPI or documentation-index drift detected."]
-    lines += ["", "## Current paths", "", *[f"- `{name}`" for name in current.get("paths", [])], ""]
+    lines = [
+        "# LemonSlice documentation drift report",
+        "",
+        f"Status: {'FAIL' if errors else 'PASS'}",
+        "",
+    ]
+    lines += (
+        ["## Drift detected", ""] + [f"- {error}" for error in errors]
+        if errors
+        else ["No tracked OpenAPI or documentation-index drift detected."]
+    )
+    lines += [
+        "",
+        "## Current paths",
+        "",
+        *[f"- `{name}`" for name in current.get("paths", [])],
+        "",
+    ]
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -292,20 +326,35 @@ def main() -> int:
     parser.add_argument("--llms-file", type=Path)
     args = parser.parse_args()
     try:
-        spec = json.loads(args.openapi_file.read_bytes() if args.openapi_file else fetch(args.openapi_url))
-        llms_text = args.llms_file.read_text(encoding="utf-8") if args.llms_file else fetch(args.llms_url).decode()
+        openapi_bytes = args.openapi_file.read_bytes() if args.openapi_file else fetch(args.openapi_url)
+        llms_text = (
+            args.llms_file.read_text(encoding="utf-8")
+            if args.llms_file
+            else fetch(args.llms_url).decode("utf-8")
+        )
+        spec = json.loads(openapi_bytes)
     except Exception as exc:
         write_report(args.report, [f"Source retrieval/parsing failed: {exc}"], {"paths": []})
         print(exc, file=sys.stderr)
         return 2
+
     current = normalize(spec)
     if args.write_snapshot:
-        payload = {"generated_from": args.openapi_url, "audited_at": time.strftime("%Y-%m-%d"), "notes": SNAPSHOT_NOTES, **current}
+        payload = {
+            "generated_from": args.openapi_url,
+            "audited_at": time.strftime("%Y-%m-%d"),
+            "notes": SNAPSHOT_NOTES,
+            **current,
+        }
         args.snapshot.parent.mkdir(parents=True, exist_ok=True)
-        args.snapshot.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        args.snapshot.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         print(f"Wrote {args.snapshot}")
         return 0
-    errors = compare(json.loads(args.snapshot.read_text(encoding="utf-8")), current)
+
+    snapshot = json.loads(args.snapshot.read_text(encoding="utf-8"))
+    errors = compare(snapshot, current)
     errors.extend(check_skill_links(llms_text))
     write_report(args.report, errors, current)
     for error in errors:
