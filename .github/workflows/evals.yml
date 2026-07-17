@@ -72,6 +72,7 @@ jobs:
           python scripts/format_repository_data.py --check
       - name: Push non-workflow hardening changes
         run: |
+          set +e
           rm -rf artifacts
           find . -type d -name __pycache__ -prune -exec rm -rf {} +
           rm -f scripts/apply_hardening_bundle.py
@@ -80,6 +81,22 @@ jobs:
           rm -f .github/workflows/behavioral-evals.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Harden LemonSlice drift and evaluation infrastructure"
-          git push origin HEAD:improvements
+          git status --short > /tmp/publication.log
+          git add -A >> /tmp/publication.log 2>&1
+          git diff --cached --name-status >> /tmp/publication.log 2>&1
+          git commit -m "Harden LemonSlice drift and evaluation infrastructure" >> /tmp/publication.log 2>&1
+          status=$?
+          if [ "$status" -eq 0 ]; then
+            git push origin HEAD:improvements >> /tmp/publication.log 2>&1
+            status=$?
+          fi
+          cat /tmp/publication.log
+          exit $status
+      - name: Upload publication diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: hardening-publication-diagnostics
+          path: /tmp/publication.log
+          if-no-files-found: error
+          retention-days: 14
