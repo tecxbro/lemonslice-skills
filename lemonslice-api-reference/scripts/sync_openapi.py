@@ -20,6 +20,12 @@ DEFAULT_OPENAPI_URL = "https://lemonslice.com/docs/openapi.json"
 DEFAULT_LLMS_URL = "https://lemonslice.com/docs/llms.txt"
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SNAPSHOT = Path(__file__).resolve().parents[1] / "references" / "openapi.snapshot.json"
+SNAPSHOT_NOTES = [
+    "Raw REST and framework plugin contracts are tracked separately.",
+    "The current raw SessionInput uses exactly one of agent_id or agent_image_url.",
+    "Model and aspect-ratio fields must not be inferred from framework plugin documentation.",
+    "The control operation declares security: [] while also documenting a 401 response; preserve this as a documentation conflict.",
+]
 
 
 def fetch(url: str, attempts: int = 3, timeout: int = 30) -> bytes:
@@ -35,7 +41,7 @@ def fetch(url: str, attempts: int = 3, timeout: int = 30) -> bytes:
         except (urllib.error.URLError, TimeoutError) as exc:
             last_error = exc
             if attempt + 1 < attempts:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
     raise RuntimeError(f"Unable to fetch {url}: {last_error}")
 
 
@@ -48,52 +54,187 @@ def resolve_ref(spec: dict[str, Any], value: Any) -> Any:
     current: Any = spec
     for part in ref[2:].split("/"):
         current = current[part.replace("~1", "/").replace("~0", "~")]
-    return current
+    if not isinstance(current, dict):
+        return current
+    siblings = {key: item for key, item in value.items() if key != "$ref"}
+    return {**current, **siblings}
 
 
-def walk_schema(spec: dict[str, Any], schema: Any, seen: set[str] | None = None) -> dict[str, Any]:
-    """Return a stable summary of required properties and enums."""
+def _empty_summary() -> dict[str, Any]:
+    return {
+        "required": [],
+        "forbidden": [],
+        "enums": {},
+        "constants": {},
+        "dependent_required": {},
+        "one_of": [],
+        "any_of": [],
+    }
+
+
+def _merge_enums(target: dict[str, list[Any]], incoming: dict[str, list[Any]]) -> None:
+    for name, values in incoming.items():
+        target[name] = sorted(set(target.get(name, [])) | set(values), key=str)
+
+
+def _merge_summary(target: dict[str, Any], incoming: dict[str, Any]) -> None:
+    target["required"] = sorted(set(target["required"]) | set(incoming.get("required", [])))
+    target["forbidden"] = sorted(set(target["forbidden"]) | set(incoming.get("forbidden", [])))
+    _merge_enums(target["enums"], incoming.get("enums", {}))
+    target["constants"].update(incoming.get("constants", {}))
+    for name, dependencies in incoming.get("dependent_required", {}).items():
+        target["dependent_required"][name] = sorted(
+            set(target["dependent_required"].get(name, [])) | set(dependencies)
+        )
+    target["one_of"].extend(incoming.get("one_of", []))
+    target["any_of"].extend(incoming.get("any_of", []))
+    if "discriminator" in incoming:
+        target["discriminator"] = incoming["discriminator"]
+
+
+def _variant_title(schema: dict[str, Any], summary: dict[str, Any]) -> str | None:
+    title = schema.get("title")
+    if isinstance(title, str) and title.strip():
+        return title.strip()
+    required = set(summary.get("required", []))
+    for selector in ("agent_image_url", "agent_id"):
+        if selector in required:
+            return f"By {selector}"
+    return None
+
+
+def _clean_summary(summary: dict[str, Any], *, variant_schema: dict[str, Any] | None = None) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    if variant_schema is not None:
+        title = _variant_title(variant_schema, summary)
+        if title:
+            result["title"] = title
+    for name, value in sorted(summary.get("constants", {}).items()):
+        result[name] = value
+    for key in ("required", "forbidden"):
+        values = summary.get(key, [])
+        if values:
+            result[key] = sorted(values)
+    enums = summary.get("enums", {})
+    if enums:
+        result["enums"] = dict(sorted(enums.items()))
+    dependent = summary.get("dependent_required", {})
+    if dependent:
+        result["dependent_required"] = {
+            name: sorted(values) for name, values in sorted(dependent.items())
+        }
+    for key in ("one_of", "any_of"):
+        variants = summary.get(key, [])
+        if variants:
+            result[key] = variants
+    if "discriminator" in summary:
+        result["discriminator"] = summary["discriminator"]
+    return result
+
+
+def walk_schema(
+    spec: dict[str, Any],
+    schema: Any,
+    seen: set[str] | None = None,
+) -> dict[str, Any]:
+    """Return a stable schema summary without flattening alternatives."""
     seen = seen or set()
     if not isinstance(schema, dict):
-        return {"required": [], "enums": {}}
+        return {}
     if "$ref" in schema:
         ref = str(schema["$ref"])
         if ref in seen:
-            return {"required": [], "enums": {}}
+            return {}
         seen.add(ref)
-        return walk_schema(spec, resolve_ref(spec, schema), seen)
+        schema = resolve_ref(spec, schema)
+        if not isinstance(schema, dict):
+            return {}
 
-    required = set(schema.get("required", []))
-    enums: dict[str, list[Any]] = {}
+    summary = _empty_summary()
+    summary["required"] = sorted(
+        value for value in schema.get("required", []) if isinstance(value, str)
+    )
+
+    not_schema = resolve_ref(spec, schema.get("not", {}))
+    if isinstance(not_schema, dict):
+        summary["forbidden"] = sorted(
+            value for value in not_schema.get("required", []) if isinstance(value, str)
+        )
+
+    dependent = schema.get("dependentRequired", {})
+    if isinstance(dependent, dict):
+        for name, values in dependent.items():
+            if isinstance(name, str) and isinstance(values, list):
+                summary["dependent_required"][name] = sorted(
+                    value for value in values if isinstance(value, str)
+                )
+
+    discriminator = schema.get("discriminator")
+    if isinstance(discriminator, dict):
+        normalized: dict[str, Any] = {}
+        property_name = discriminator.get("propertyName")
+        if isinstance(property_name, str):
+            normalized["property_name"] = property_name
+        mapping = discriminator.get("mapping")
+        if isinstance(mapping, dict):
+            normalized["mapping"] = dict(sorted(mapping.items()))
+        if normalized:
+            summary["discriminator"] = normalized
+
     properties = schema.get("properties", {})
     if isinstance(properties, dict):
         for name, raw in properties.items():
             prop = resolve_ref(spec, raw)
-            if isinstance(prop, dict) and isinstance(prop.get("enum"), list):
-                enums[name] = sorted(prop["enum"], key=str)
+            if not isinstance(name, str) or not isinstance(prop, dict):
+                continue
+            if isinstance(prop.get("enum"), list):
+                summary["enums"][name] = sorted(prop["enum"], key=str)
+            if "const" in prop:
+                summary["constants"][name] = prop["const"]
             nested = walk_schema(spec, prop, set(seen))
-            for nested_name, values in nested["enums"].items():
-                enums[f"{name}.{nested_name}"] = values
+            for nested_name, values in nested.get("enums", {}).items():
+                summary["enums"][f"{name}.{nested_name}"] = values
 
-    for key in ("oneOf", "anyOf", "allOf"):
-        variants = schema.get(key, [])
-        if isinstance(variants, list):
-            for variant in variants:
-                summary = walk_schema(spec, variant, set(seen))
-                required.update(summary["required"])
-                for name, values in summary["enums"].items():
-                    enums.setdefault(name, [])
-                    enums[name] = sorted(set(enums[name]) | set(values), key=str)
+    all_of = schema.get("allOf", [])
+    if isinstance(all_of, list):
+        for member in all_of:
+            _merge_summary(summary, walk_schema(spec, member, set(seen)))
 
-    return {"required": sorted(required), "enums": dict(sorted(enums.items()))}
+    for source_key, output_key in (("oneOf", "one_of"), ("anyOf", "any_of")):
+        variants = schema.get(source_key, [])
+        if not isinstance(variants, list):
+            continue
+        for raw_variant in variants:
+            resolved = resolve_ref(spec, raw_variant)
+            variant_schema = resolved if isinstance(resolved, dict) else {}
+            variant_summary = walk_schema(spec, variant_schema, set(seen))
+            summary[output_key].append(
+                _clean_summary(variant_summary, variant_schema=variant_schema)
+            )
+
+    return _clean_summary(summary)
 
 
 def request_schema(spec: dict[str, Any], operation: dict[str, Any]) -> dict[str, Any]:
-    content = operation.get("requestBody", {}).get("content", {})
-    if not isinstance(content, dict):
-        return {"required": [], "enums": {}}
-    media = content.get("application/json") or next(iter(content.values()), {})
-    return walk_schema(spec, media.get("schema", {}))
+    request_body = resolve_ref(spec, operation.get("requestBody", {}))
+    content = request_body.get("content", {}) if isinstance(request_body, dict) else {}
+    if not isinstance(content, dict) or not content:
+        return {"content_types": [], "media_types": {}}
+
+    media_types: dict[str, Any] = {}
+    for content_type, media in sorted(content.items()):
+        media = resolve_ref(spec, media)
+        schema = media.get("schema", {}) if isinstance(media, dict) else {}
+        media_types[content_type] = walk_schema(spec, schema)
+
+    result: dict[str, Any] = {
+        "content_types": sorted(media_types),
+        "media_types": media_types,
+    }
+    json_summary = media_types.get("application/json")
+    if isinstance(json_summary, dict):
+        result.update(json_summary)
+    return result
 
 
 def normalize_security(spec: dict[str, Any], value: Any) -> list[str]:
@@ -115,23 +256,28 @@ def normalize_security(spec: dict[str, Any], value: Any) -> list[str]:
 def normalize(spec: dict[str, Any]) -> dict[str, Any]:
     paths = spec.get("paths", {})
     operations: dict[str, Any] = {}
-    for path, path_item in sorted(paths.items()):
+    normalized_paths: list[str] = []
+    if not isinstance(paths, dict):
+        paths = {}
+    for path, raw_path_item in sorted(paths.items()):
+        normalized_paths.append(path)
+        path_item = resolve_ref(spec, raw_path_item)
         if not isinstance(path_item, dict):
             continue
         for method in ("get", "post", "put", "patch", "delete"):
-            operation = path_item.get(method)
+            operation = resolve_ref(spec, path_item.get(method))
             if not isinstance(operation, dict):
                 continue
-            security = operation.get("security", spec.get("security"))
+            security = operation.get(
+                "security",
+                path_item.get("security", spec.get("security")),
+            )
             operations[f"{method.upper()} {path}"] = {
                 "security": normalize_security(spec, security),
                 "request": request_schema(spec, operation),
                 "responses": sorted(str(code) for code in operation.get("responses", {}).keys()),
             }
-    return {
-        "paths": sorted(paths.keys()),
-        "operations": operations,
-    }
+    return {"paths": normalized_paths, "operations": operations}
 
 
 def compare(snapshot: dict[str, Any], current: dict[str, Any]) -> list[str]:
@@ -146,39 +292,30 @@ def compare(snapshot: dict[str, Any], current: dict[str, Any]) -> list[str]:
         if removed:
             errors.append(f"OpenAPI paths removed: {', '.join(removed)}")
 
-    for name, expected in snapshot.get("operations", {}).items():
-        actual = current.get("operations", {}).get(name)
-        if actual is None:
-            errors.append(f"Missing operation: {name}")
-            continue
+    expected_operations = snapshot.get("operations", {})
+    current_operations = current.get("operations", {})
+    for name in sorted(set(current_operations) - set(expected_operations)):
+        errors.append(f"OpenAPI operation added: {name}")
+    for name in sorted(set(expected_operations) - set(current_operations)):
+        errors.append(f"Missing operation: {name}")
 
+    for name in sorted(set(expected_operations) & set(current_operations)):
+        expected = expected_operations[name]
+        actual = current_operations[name]
         if expected.get("security") != actual.get("security"):
             errors.append(
                 f"{name} security changed: expected {expected.get('security')}, "
                 f"found {actual.get('security')}"
             )
-
-        expected_required = expected.get("request", {}).get("required", [])
-        actual_required = actual.get("request", {}).get("required", [])
-        if expected_required != actual_required:
+        if expected.get("request") != actual.get("request"):
             errors.append(
-                f"{name} required fields changed: expected {expected_required}, "
-                f"found {actual_required}"
+                f"{name} request contract changed: expected "
+                f"{json.dumps(expected.get('request'), sort_keys=True)}, found "
+                f"{json.dumps(actual.get('request'), sort_keys=True)}"
             )
-
-        expected_request = expected.get("request", {})
-        if "enums" in expected_request:
-            expected_enums = expected_request.get("enums", {})
-            actual_enums = actual.get("request", {}).get("enums", {})
-            if expected_enums != actual_enums:
-                errors.append(
-                    f"{name} enums changed: expected {expected_enums}, found {actual_enums}"
-                )
-
-        expected_responses = expected.get("responses", [])
-        if expected_responses != actual.get("responses", []):
+        if expected.get("responses", []) != actual.get("responses", []):
             errors.append(
-                f"{name} response codes changed: expected {expected_responses}, "
+                f"{name} response codes changed: expected {expected.get('responses', [])}, "
                 f"found {actual.get('responses', [])}"
             )
     return errors
@@ -193,10 +330,7 @@ def normalize_doc_url(url: str) -> str:
 
 def check_skill_links(llms_text: str) -> list[str]:
     errors: list[str] = []
-    indexed = {
-        normalize_doc_url(match.group(0))
-        for match in DOC_URL_RE.finditer(llms_text)
-    }
+    indexed = {normalize_doc_url(match.group(0)) for match in DOC_URL_RE.finditer(llms_text)}
     exceptions = {
         "https://lemonslice.com/docs/llms.txt",
         "https://lemonslice.com/docs/openapi.json",
@@ -254,11 +388,7 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        openapi_bytes = (
-            args.openapi_file.read_bytes()
-            if args.openapi_file
-            else fetch(args.openapi_url)
-        )
+        openapi_bytes = args.openapi_file.read_bytes() if args.openapi_file else fetch(args.openapi_url)
         llms_text = (
             args.llms_file.read_text(encoding="utf-8")
             if args.llms_file
@@ -275,9 +405,11 @@ def main() -> int:
         payload = {
             "generated_from": args.openapi_url,
             "audited_at": time.strftime("%Y-%m-%d"),
+            "notes": SNAPSHOT_NOTES,
             **current,
         }
-        args.snapshot.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+        args.snapshot.parent.mkdir(parents=True, exist_ok=True)
+        args.snapshot.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(f"Wrote {args.snapshot}")
         return 0
 
