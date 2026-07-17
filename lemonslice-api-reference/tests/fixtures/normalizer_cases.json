@@ -1,0 +1,215 @@
+{
+  "schema_cases": [
+    {
+      "name": "oneOf mutually exclusive image selectors",
+      "schema": {
+        "type": "object",
+        "required": ["transport_type"],
+        "properties": {
+          "transport_type": {"type": "string", "enum": ["livekit", "daily"]}
+        },
+        "oneOf": [
+          {
+            "title": "By agent_image_url",
+            "required": ["agent_image_url"],
+            "not": {"required": ["agent_id"]}
+          },
+          {
+            "title": "By agent_id",
+            "required": ["agent_id"],
+            "not": {"required": ["agent_image_url"]}
+          }
+        ]
+      },
+      "expected": {
+        "required": ["transport_type"],
+        "enums": {"transport_type": ["daily", "livekit"]},
+        "one_of": [
+          {
+            "title": "By agent_image_url",
+            "required": ["agent_image_url"],
+            "forbidden": ["agent_id"]
+          },
+          {
+            "title": "By agent_id",
+            "required": ["agent_id"],
+            "forbidden": ["agent_image_url"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "control discriminated union",
+      "schema": {
+        "oneOf": [
+          {"required": ["event"], "properties": {"event": {"const": "terminate"}}},
+          {"required": ["event", "image_url"], "properties": {"event": {"const": "update-image"}}},
+          {"required": ["event", "agent_prompt"], "properties": {"event": {"const": "update-agent-prompt"}}},
+          {"required": ["event", "idle_prompt"], "properties": {"event": {"const": "update-idle-prompt"}}},
+          {"required": ["event", "pose_trigger"], "properties": {"event": {"const": "pose-trigger"}}}
+        ],
+        "discriminator": {
+          "propertyName": "event",
+          "mapping": {
+            "terminate": "#/components/schemas/Terminate",
+            "update-image": "#/components/schemas/UpdateImage"
+          }
+        }
+      },
+      "expected": {
+        "one_of": [
+          {"event": "terminate", "required": ["event"]},
+          {"event": "update-image", "required": ["event", "image_url"]},
+          {"event": "update-agent-prompt", "required": ["agent_prompt", "event"]},
+          {"event": "update-idle-prompt", "required": ["event", "idle_prompt"]},
+          {"event": "pose-trigger", "required": ["event", "pose_trigger"]}
+        ],
+        "discriminator": {
+          "property_name": "event",
+          "mapping": {
+            "terminate": "#/components/schemas/Terminate",
+            "update-image": "#/components/schemas/UpdateImage"
+          }
+        }
+      }
+    },
+    {
+      "name": "allOf composition",
+      "schema": {
+        "allOf": [
+          {"required": ["a"], "properties": {"kind": {"enum": ["x"]}}},
+          {"required": ["b"]}
+        ]
+      },
+      "expected": {"required": ["a", "b"], "enums": {"kind": ["x"]}}
+    },
+    {
+      "name": "anyOf alternatives",
+      "schema": {"anyOf": [{"required": ["email"]}, {"required": ["phone"]}]},
+      "expected": {"any_of": [{"required": ["email"]}, {"required": ["phone"]}]}
+    },
+    {
+      "name": "not.required",
+      "schema": {"required": ["a"], "not": {"required": ["b"]}},
+      "expected": {"required": ["a"], "forbidden": ["b"]}
+    },
+    {
+      "name": "dependentRequired",
+      "schema": {"dependentRequired": {"credit_card": ["billing_address"]}},
+      "expected": {"dependent_required": {"credit_card": ["billing_address"]}}
+    }
+  ],
+  "normalize_cases": [
+    {
+      "name": "inherited security",
+      "spec": {
+        "openapi": "3.1.0",
+        "security": [{"ApiKeyAuth": []}],
+        "components": {
+          "securitySchemes": {
+            "ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"}
+          }
+        },
+        "paths": {
+          "/sessions": {"post": {"responses": {"201": {"description": "ok"}}}}
+        }
+      },
+      "operation": "POST /sessions",
+      "expected_security": ["X-API-Key"]
+    },
+    {
+      "name": "operation-level security empty",
+      "spec": {
+        "openapi": "3.1.0",
+        "security": [{"ApiKeyAuth": []}],
+        "components": {
+          "securitySchemes": {
+            "ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"}
+          }
+        },
+        "paths": {
+          "/control": {"post": {"security": [], "responses": {"200": {"description": "ok"}}}}
+        }
+      },
+      "operation": "POST /control",
+      "expected_security": []
+    },
+    {
+      "name": "multipart content addition",
+      "spec": {
+        "openapi": "3.1.0",
+        "paths": {
+          "/sessions": {
+            "post": {
+              "requestBody": {
+                "content": {
+                  "application/json": {"schema": {"required": ["agent_id"]}},
+                  "multipart/form-data": {"schema": {"required": ["image"]}}
+                }
+              },
+              "responses": {"201": {"description": "ok"}}
+            }
+          }
+        }
+      },
+      "operation": "POST /sessions",
+      "expected_content_types": ["application/json", "multipart/form-data"]
+    }
+  ],
+  "compare_cases": [
+    {
+      "name": "response-code change",
+      "snapshot": {
+        "paths": ["/x"],
+        "operations": {
+          "GET /x": {"security": [], "request": {"content_types": [], "media_types": {}}, "responses": ["200"]}
+        }
+      },
+      "current": {
+        "paths": ["/x"],
+        "operations": {
+          "GET /x": {"security": [], "request": {"content_types": [], "media_types": {}}, "responses": ["200", "401"]}
+        }
+      },
+      "contains": "response codes changed"
+    },
+    {
+      "name": "enum change",
+      "snapshot": {
+        "paths": ["/x"],
+        "operations": {
+          "POST /x": {
+            "security": [],
+            "request": {
+              "content_types": ["application/json"],
+              "media_types": {"application/json": {"enums": {"kind": ["a"]}}},
+              "enums": {"kind": ["a"]}
+            },
+            "responses": ["200"]
+          }
+        }
+      },
+      "current": {
+        "paths": ["/x"],
+        "operations": {
+          "POST /x": {
+            "security": [],
+            "request": {
+              "content_types": ["application/json"],
+              "media_types": {"application/json": {"enums": {"kind": ["a", "b"]}}},
+              "enums": {"kind": ["a", "b"]}
+            },
+            "responses": ["200"]
+          }
+        }
+      },
+      "contains": "request contract changed"
+    },
+    {
+      "name": "added and removed endpoint",
+      "snapshot": {"paths": ["/old"], "operations": {}},
+      "current": {"paths": ["/new"], "operations": {}},
+      "contains_all": ["paths added", "paths removed"]
+    }
+  ]
+}
