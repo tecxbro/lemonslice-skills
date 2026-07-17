@@ -78,7 +78,7 @@ Use `lemonslice-integration-choice` for ambiguous requests. Explicit framework o
 Current sources:
 - https://lemonslice.com/docs/llms.txt
 - https://lemonslice.com/docs/introduction/index.md
-- https://lemonslice.com/docs/quickstart.md
+- https://lemonslice.com/docs/introduction/quickstart
 - https://lemonslice.com/docs/reference/production-checklist.md
 - https://lemonslice.com/docs/livekit/index.md
 - https://lemonslice.com/docs/pipecat/index.md
