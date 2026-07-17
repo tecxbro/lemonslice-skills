@@ -1,4 +1,4 @@
-name: Apply LemonSlice hardening bundle (temporary)
+name: Export hardening base tree (temporary)
 
 on:
   push:
@@ -13,109 +13,28 @@ on:
       - ".github/workflows/evals.yml"
 
 permissions:
-  contents: write
-
-concurrency:
-  group: hardening-application-${{ github.ref }}
-  cancel-in-progress: true
+  contents: read
 
 jobs:
-  apply:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+  export-tree:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           ref: improvements
           fetch-depth: 0
           show-progress: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with:
-          python-version: "3.12"
-      - name: Apply reviewed files
-        run: python scripts/apply_hardening_bundle.py
-      - name: Exempt repository slug from skill references
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("scripts/validate_skills.py")
-          text = path.read_text(encoding="utf-8")
-          text = text.replace(
-              "if referenced not in known_skills:",
-              'if referenced not in known_skills and referenced != "lemonslice-skills":',
-          )
-          path.write_text(text, encoding="utf-8")
-          PY
-      - name: Probe and save one stable source set
+      - name: Export current commit and tree
         run: |
           mkdir -p artifacts
-          set +e
-          python lemonslice-api-reference/scripts/sync_openapi.py \
-            --download-sources \
-            --source-dir artifacts/sources \
-            --probe-count 3 \
-            --report artifacts/docs-drift.md \
-            > artifacts/probe.log 2>&1
-          status=$?
-          cat artifacts/probe.log
-          exit $status
-      - name: Generate repository snapshot from saved source
-        run: |
-          python lemonslice-api-reference/scripts/sync_openapi.py \
-            --write-snapshot \
-            --openapi-file artifacts/sources/openapi.json \
-            --llms-file artifacts/sources/llms.txt \
-            --source-metadata-file artifacts/sources/source-metadata.json \
-            --snapshot lemonslice-api-reference/references/openapi.snapshot.json
-      - name: Format generated data
-        run: python scripts/format_repository_data.py
-      - name: Validate hardening changes
-        run: |
-          set +e
-          status=0
-          python -m unittest discover -s lemonslice-api-reference/tests -p "test_*.py" -v > artifacts/normalizer-tests.log 2>&1 || status=1
-          python evals/run_evals.py --validate > artifacts/eval-validation.log 2>&1 || status=1
-          python scripts/validate_skills.py > artifacts/skill-validation.log 2>&1 || status=1
-          python scripts/validate_skills.py --links-only > artifacts/link-validation.log 2>&1 || status=1
-          python scripts/format_repository_data.py --check > artifacts/format-validation.log 2>&1 || status=1
-          cat artifacts/normalizer-tests.log
-          cat artifacts/eval-validation.log
-          cat artifacts/skill-validation.log
-          cat artifacts/link-validation.log
-          cat artifacts/format-validation.log
-          exit $status
-      - name: Upload hardening diagnostics
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+          git rev-parse HEAD > artifacts/commit-sha.txt
+          git show -s --format=%T HEAD > artifacts/tree-sha.txt
+          cat artifacts/commit-sha.txt
+          cat artifacts/tree-sha.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: hardening-diagnostics
+          name: hardening-base-tree
           path: artifacts
-          if-no-files-found: error
-          retention-days: 14
-      - name: Commit reviewed hardening pass
-        run: |
-          set +e
-          rm -rf artifacts
-          rm -f .github/workflows/apply-hardening.yml scripts/apply_hardening_bundle.py
-          rm -f scripts/.hardening_bundle.part*
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git status --short > /tmp/commit.log
-          git add -A >> /tmp/commit.log 2>&1
-          git commit -m "Harden drift and behavioral evaluation infrastructure" >> /tmp/commit.log 2>&1
-          status=$?
-          if [ "$status" -eq 0 ]; then
-            git push origin HEAD:improvements >> /tmp/commit.log 2>&1
-            status=$?
-          fi
-          cat /tmp/commit.log
-          exit $status
-      - name: Upload commit diagnostics
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: hardening-commit-diagnostics
-          path: /tmp/commit.log
           if-no-files-found: error
           retention-days: 14
