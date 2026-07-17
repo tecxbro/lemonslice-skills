@@ -1,0 +1,66 @@
+name: Apply LemonSlice hardening bundle
+
+on:
+  push:
+    branches:
+      - improvements
+    paths:
+      - ".github/workflows/apply-hardening.yml"
+      - "scripts/apply_hardening_bundle.py"
+      - "scripts/.hardening_bundle.part*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: improvements
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Apply reviewed files
+        run: python scripts/apply_hardening_bundle.py
+      - name: Probe and save one stable source set
+        run: |
+          python lemonslice-api-reference/scripts/sync_openapi.py \
+            --download-sources \
+            --source-dir artifacts/sources \
+            --probe-count 3 \
+            --report artifacts/docs-drift.md
+      - name: Generate repository snapshot from saved source
+        run: |
+          python lemonslice-api-reference/scripts/sync_openapi.py \
+            --write-snapshot \
+            --openapi-file artifacts/sources/openapi.json \
+            --llms-file artifacts/sources/llms.txt \
+            --source-metadata-file artifacts/sources/source-metadata.json \
+            --snapshot lemonslice-api-reference/references/openapi.snapshot.json
+      - name: Format generated data
+        run: python scripts/format_repository_data.py
+      - name: Validate hardening changes
+        run: |
+          python -m unittest discover -s lemonslice-api-reference/tests -p "test_*.py" -v
+          python evals/run_evals.py --validate
+          python scripts/validate_skills.py
+          python scripts/validate_skills.py --links-only
+          python scripts/format_repository_data.py --check
+      - name: Commit reviewed hardening pass
+        run: |
+          rm -rf artifacts
+          rm -f .github/workflows/apply-hardening.yml scripts/apply_hardening_bundle.py
+          rm -f scripts/.hardening_bundle.part*
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Harden drift and behavioral evaluation infrastructure"
+          git push origin HEAD:improvements
