@@ -1,127 +1,84 @@
 ---
 name: lemonslice-overview
-description: Conceptual product map for LemonSlice. Use this when the user needs orientation before implementation: what LemonSlice is, what it is not, why LiveKit, Pipecat, Self-Managed, Hosted, Hosted Daily, and Widget paths exist, what each repo skill is for, and where to route next. Do not use this for code edits or endpoint payloads.
+description: Explain LemonSlice Character World Models, capabilities, deployment modes, integration paths, and the skill map. Use for conceptual questions or when the user wants an overview rather than implementation.
 license: MIT
 ---
 
-# Lemon Slice Overview
+# LemonSlice overview
 
-## Official docs
+## Character World Model
+
+LemonSlice turns a single character image plus streaming speech audio into real-time interactive character video. Ordinary avatar creation does not require per-character training or fine-tuning.
+
+## Basic media contract
+
+Inputs:
+
+1. avatar image or configured agent;
+2. streaming TTS audio;
+3. optional provisioned action/control events.
+
+Output:
+
+- synchronized avatar audio and video in a WebRTC call.
+
+A typical conversational pipeline is: STT/VAD hears the user → LLM selects a response → TTS generates audio → LemonSlice generates synchronized character video.
+
+## Capability groups
+
+### Generative model capabilities
+
+- human, cartoon, animal, mascot, and other facial characters;
+- hand and full-body motion;
+- emotional expression;
+- clothing, object, background, and scene changes where supported;
+- physics- and spatially-aware motion.
+
+### Deterministic application controls
+
+Only controls explicitly exposed by the selected integration and provisioned for the account/avatar are deterministic application events. Do not turn every product capability into an assumed public API action.
+
+## Deployment map
+
+### Self-Managed Pipeline
+
+The developer owns STT, VAD/turn detection, LLM, TTS, tools, conversation state, and UI. LemonSlice supplies avatar media.
+
+Subpaths:
+
+- new official starter → `lemonslice-quickstart`;
+- existing LiveKit Agents app → `lemonslice-livekit`;
+- existing Pipecat pipeline, including Pipecat-over-Daily → `lemonslice-pipecat`;
+- custom raw LiveKit or Daily transport → `lemonslice-self-managed`;
+- Zoom, Meet, Teams, or Webex bridge → `lemonslice-meeting-platforms`.
+
+### Hosted Pipeline
+
+LemonSlice owns STT, LLM, TTS, and avatar generation. The app owns authorization, room creation through `lemonslice-hosted`, and a custom Daily frontend through `lemonslice-hosted-daily`.
+
+### Widget
+
+A prebuilt LemonSlice-managed call experience for the fastest embed and least application-owned lifecycle control.
+
+## Cross-cutting skills
+
+- runtime image, prompt, idle, action, or terminate controls → `lemonslice-control-actions`;
+- model, aspect ratio, framing, or green screen → `lemonslice-appearance-rendering`;
+- lifecycle, readiness, latency, cleanup, and billing safety → `lemonslice-production-patterns`;
+- exact endpoint/schema questions → `lemonslice-api-reference`.
+
+## Product claims caveat
+
+Do not translate product-level capacity statements such as long calls or high concurrency into guaranteed account entitlements. Verify the user's current plan, account, region, model, and integration limits.
+
+## Routing
+
+Use `lemonslice-integration-choice` for ambiguous requests. Explicit framework or feature requests go directly to their implementation skill.
+
+Current sources:
 - https://lemonslice.com/docs/llms.txt
 - https://lemonslice.com/docs/introduction/index.md
-- https://lemonslice.com/docs/reference/overview.md
-- https://lemonslice.com/docs/reference/best-practices.md
+- https://lemonslice.com/docs/introduction/quickstart
+- https://lemonslice.com/docs/reference/production-checklist.md
 - https://lemonslice.com/docs/livekit/index.md
 - https://lemonslice.com/docs/pipecat/index.md
-- https://lemonslice.com/docs/widget/overview.md
-- https://lemonslice.com/docs/widget/control.md
-- https://lemonslice.com/docs/hosted/overview.md
-- https://lemonslice.com/docs/hosted/integrations/daily-room-integration.md
-- https://lemonslice.com/docs/reference/actions.md
-
-## Use this skill when
-You need a conceptual product map to understand the architecture of Lemon Slice, its integration paths, and how the various agent skills in this repository map to those paths.
-
-## Do not use this skill when
-- The user already selected a path and needs implementation instructions.
-- The task requires endpoint payloads, package installation, or code edits.
-- The task is a production audit.
-- The task is specifically about runtime control/actions.
-- The task is specifically about frontend Daily joining.
-
-## What Lemon Slice is
-
-Lemon Slice is the real-time avatar video layer for production voice and video agents.
-
-In the main production path, a developer already has or builds an agent stack:
-- STT
-- LLM
-- TTS
-- orchestration
-- transport/session handling
-
-Lemon Slice adds the avatar video layer: it receives agent audio and produces lip-synced avatar video over WebRTC.
-
-The primary production integrations are LiveKit and Pipecat.
-
-## What Lemon Slice is not
-
-Lemon Slice is not always a full AI backend.
-
-In self-managed, LiveKit, and Pipecat paths, Lemon Slice does not replace the developer’s STT, LLM, TTS, agent logic, or orchestration.
-
-Lemon Slice is not always a widget. The widget is only one integration path.
-
-Lemon Slice is not something frontend code should call directly with private API keys.
-
-Lemon Slice is not a replacement for transport lifecycle handling, readiness checks, interruption handling, latency budgeting, or production cleanup.
-
-## Why multiple integration paths exist
-
-The paths exist because different teams want different levels of control.
-
-The main questions are:
-1. Who owns STT/LLM/TTS?
-2. Who owns the frontend UI?
-3. Is this a production agent, a prototype, or a no-code embed?
-4. Is the project already built on LiveKit, Pipecat, Daily, or just a website?
-
-Lemon Slice supports multiple paths so teams can either:
-- keep their existing agent stack and add avatar video,
-- let Lemon Slice manage the AI pipeline,
-- or use a prebuilt widget for the fastest embed.
-
-## Product path map
-
-| Path | Who owns STT/LLM/TTS? | Who owns UI? | Use when |
-|---|---|---|---|
-| LiveKit | Developer | Developer | Existing or planned LiveKit Agents stack |
-| Pipecat | Developer | Developer | Existing or planned Pipecat pipeline |
-| Self-Managed API | Developer | Developer | Custom stack without LiveKit/Pipecat |
-| Hosted Pipeline | Lemon Slice | Developer | Developer wants Lemon Slice to manage STT/LLM/TTS but wants custom UI |
-| Hosted Daily | Lemon Slice | Developer | Backend already created hosted session and frontend must join Daily room |
-| Widget | Lemon Slice | Lemon Slice/prebuilt | Fast no-backend website embed |
-
-## Skill map
-
-- `lemonslice-overview`: Product map and conceptual orientation.
-- `lemonslice-integration-choice`: Mandatory router for choosing the correct path.
-- `lemonslice-self-managed`: Use Lemon Slice as avatar/video layer in a custom developer-owned stack.
-- `lemonslice-livekit`: Add Lemon Slice avatars to LiveKit Agents.
-- `lemonslice-pipecat`: Add Lemon Slice avatars to Pipecat pipelines.
-- `lemonslice-hosted`: Create/manage hosted sessions where Lemon Slice manages STT/LLM/TTS.
-- `lemonslice-hosted-daily`: Build the frontend that joins a hosted Lemon Slice Daily room.
-- `lemonslice-widget`: Embed and control the no-backend web widget.
-- `lemonslice-api-reference`: Use raw Lemon Slice REST APIs correctly.
-- `lemonslice-control-actions`: Runtime control, actions, emotions, image updates, and termination.
-- `lemonslice-production-patterns`: Security, latency, reliability, cleanup, and deployment hardening.
-
-## Where to route next
-
-After this overview:
-
-- If the user request is vague, route to `lemonslice-integration-choice`.
-- If the project clearly uses LiveKit, route to `lemonslice-livekit`.
-- If the project clearly uses Pipecat, route to `lemonslice-pipecat`.
-- If the developer owns STT/LLM/TTS but no framework is clear, route to `lemonslice-self-managed`.
-- If Lemon Slice should manage STT/LLM/TTS, route to `lemonslice-hosted`.
-- If the backend already returns Daily room credentials, route to `lemonslice-hosted-daily`.
-- If the user wants a no-backend website embed, route to `lemonslice-widget`.
-- If the task is about endpoint correctness, route to `lemonslice-api-reference`.
-- If the task is about runtime actions or termination, route to `lemonslice-control-actions`.
-- If the task is about production hardening, security, latency, cleanup, or deployment, route to `lemonslice-production-patterns`.
-
-## Common mistakes
-- Confusing Hosted Pipeline with Self-Managed Pipeline. Hosted means Lemon Slice runs the AI; Self-Managed means you run the AI.
-- Starting to code before choosing a clear integration path. The APIs and packages are entirely different for each path.
-- Assuming Lemon Slice provides the LLM brains for LiveKit/Pipecat pipelines.
-
-## Validation checklist
-
-- [ ] Did I explain Lemon Slice as the avatar/video layer, not always the full agent backend?
-- [ ] Did I clearly distinguish self-managed, hosted, and widget paths?
-- [ ] Did I explain why multiple paths exist?
-- [ ] Did I map every repo skill to its purpose?
-- [ ] Did I route vague requests to `lemonslice-integration-choice`?
-- [ ] Did I avoid endpoint payloads, package installs, and implementation-heavy details?
-- [ ] Did I avoid duplicating the full router decision tree?

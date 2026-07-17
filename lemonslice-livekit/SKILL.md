@@ -1,261 +1,161 @@
 ---
 name: lemonslice-livekit
-description: Add LemonSlice avatars to LiveKit Agents. Use this when the repo uses LiveKit Agents, `livekit-agents`, `@livekit/agents`, `AgentSession`, `JobContext`, `ctx.room`, or the user asks to add LemonSlice to a LiveKit voice/video agent. Covers official package install, Python vs Node detection, `AvatarSession`, `agent_id` vs `agent_image_url`, `bot_ready`, LiveKit events, shutdown, and server-only API key handling. Do not use for Pipecat, Hosted, Widget, or raw REST unless the router selected LiveKit.
+description: Implement LemonSlice avatars in existing Python or Node LiveKit Agents apps. Covers installed-version inspection, AvatarSession wiring, provider ownership, two-gate readiness, latency measurement, failures, and cleanup.
 license: MIT
 ---
 
-# Lemon Slice LiveKit Integration
+# LemonSlice LiveKit integration
 
-## Official docs
+Follow [`../references/implementation-contract.md`](../references/implementation-contract.md).
 
-- https://lemonslice.com/docs/llms.txt
-- https://lemonslice.com/docs/livekit/index.md
-- https://lemonslice.com/docs/examples/livekit-app-python.md
-- https://lemonslice.com/docs/examples/livekit-app-nodejs.md
-- https://lemonslice.com/docs/reference/authentication.md
-- https://lemonslice.com/docs/reference/best-practices.md
-- https://lemonslice.com/docs/reference/overview.md
-- https://lemonslice.com/docs/api-reference/create-self-managed-session.md
-- https://lemonslice.com/docs/api-reference/get-self-managed-session.md
-- https://lemonslice.com/docs/api-reference/control-self-managed-session.md
-- https://lemonslice.com/docs/openapi.json
+## Routing
 
-## Guardrails
+For a new, empty project, consider `lemonslice-quickstart`. Use this skill when integrating into an existing LiveKit Agents repository or modifying the generated Quickstart.
 
-Use this only after `lemonslice-integration-choice` selected LiveKit.
+Do not add raw `/liveai/sessions` creation for a normal plugin integration.
 
-Do not use this for:
-- non-LiveKit projects
-- Pipecat projects
-- hosted LemonSlice sessions
-- widget/no-backend embeds
-- raw self-managed REST work unless it is explicitly part of a LiveKit transport integration
+## Provider ownership
 
-## Expected output
+LemonSlice supplies avatar media. Preserve the application's existing STT, VAD/turn detection, LLM, TTS, tools, and conversation state. Do not replace these merely to add LemonSlice unless the user asks.
 
-When editing a repo, produce:
-- the exact dependency command for the detected package manager
-- the exact LiveKit worker file or files to edit
-- the minimal LemonSlice wiring needed for the selected language
-- server-only environment variable changes
-- readiness handling for `bot_ready`
-- shutdown and cleanup handling
-- a short validation checklist
+## Inspect before editing
 
-## Detect Python vs Node LiveKit project
+Detect Python (`livekit-agents`) versus Node (`@livekit/agents`) from manifests, lockfiles, imports, and the real worker entrypoint. Inspect the installed LemonSlice plugin version and actual constructor signature/source before using documented fields.
 
-Inspect repo files before editing.
+Do not infer Node options from Python fields, Python options from Node fields, or either plugin surface from raw REST. Inspect the installed package's constructor signature.
 
-Python LiveKit signals:
-- `pyproject.toml`
-- `requirements.txt`
-- `uv.lock`
-- `poetry.lock`
-- dependency names like `livekit-agents`
-- imports like `from livekit.agents import ...`
-- Python worker/agent entrypoints using `JobContext`, `AgentSession`, `ctx.room`
-- existing plugins imported from `livekit.plugins`
-
-Node/TypeScript LiveKit signals:
-- `package.json`
-- `pnpm-lock.yaml`
-- `package-lock.json`
-- `yarn.lock`
-- dependencies like `@livekit/agents`
-- `.ts`, `.tsx`, `.js`, `.mjs` LiveKit agent entrypoints
-- imports from `@livekit/agents`
-
-Decision rules:
-- If only Python signals exist, follow Python install/import/wiring.
-- If only Node signals exist, follow Node install/import/wiring.
-- If both exist, identify the actual LiveKit worker entrypoint before editing.
-- Do not edit both Python and Node paths unless the repo intentionally contains both workers.
-- If no LiveKit framework signal exists, route back to `lemonslice-integration-choice`.
-
-## Install package
-
-Use the repo’s existing package manager.
-
-Python:
+## Install
 
 ```bash
-pip install "livekit-agents[lemonslice]"
-```
-
-Python with uv:
-
-```bash
+# Python
 uv add "livekit-agents[lemonslice]"
-```
+# or the repository's existing Python package manager
 
-Node with npm:
-
-```bash
-npm install @livekit/agents-plugin-lemonslice
-```
-
-Node with pnpm:
-
-```bash
+# Node
 pnpm add @livekit/agents-plugin-lemonslice
+# or the repository's existing JavaScript package manager
 ```
 
-Do not add raw LemonSlice REST client code for normal LiveKit plugin setup. The LiveKit plugin path handles session creation internally.
+Keep `LEMONSLICE_API_KEY` server-side and add only its name to `.env.example`.
 
-## Environment variables
-
-Required server-side variable:
-
-```bash
-LEMONSLICE_API_KEY=...
-```
-
-Rules:
-* Keep `LEMONSLICE_API_KEY` only in the LiveKit agent/server environment.
-* Never expose it to browser, mobile, frontend bundle, public config, or client-side code.
-* Update `.env.example` only with the key name, never a real value.
-* Do not log the raw key.
-
-## Python wiring pattern
-
-In the LiveKit agent worker, after the LiveKit `AgentSession` is created and before/around session start, create the LemonSlice avatar session.
+## Python implementation
 
 ```python
+from livekit import agents
+from livekit.agents import AgentSession
 from livekit.plugins import lemonslice
 
-avatar = lemonslice.AvatarSession(
-    agent_id="<LEMONSLICE_AGENT_ID>",
-    # or agent_image_url="https://example.com/avatar.png",
-    idle_timeout=60,
-)
+async def entrypoint(ctx: agents.JobContext):
+    await ctx.connect()
 
-await avatar.start(session, room=ctx.room)
+    session = AgentSession(
+        # Preserve existing STT, LLM, TTS, VAD, turn detection, tools.
+    )
+
+    avatar = lemonslice.AvatarSession(
+        # Exactly one supported selector in the installed signature:
+        agent_image_url="https://example.com/avatar.png",
+        # agent_id="...",
+        # agent_image=pil_image,
+        agent_prompt="a warm person speaking naturally",
+        agent_idle_prompt="a calm attentive person",
+        idle_timeout=600,
+        model="flash",          # only after installed-signature/account verification
+        aspect_ratio="1x1",     # only after installed-signature/account verification
+        simulcast=True,
+    )
+
+    session_id = await avatar.start(session, room=ctx.room)
+    await session.start(...)
 ```
 
-Rules:
-* Use `lemonslice.AvatarSession`.
-* Use exactly one of `agent_id` or `agent_image_url`.
-* For `agent_image_url`, prefer a publicly accessible image URL focused on the face. Official docs recommend 368 × 560 pixels; LemonSlice will center-crop if dimensions differ.
-* When using `agent_id` with the LiveKit plugin, do not assume LemonSlice web-app voice/personality settings carry over. The LiveKit plugin uses the developer’s own STT/LLM/TTS stack; selected LemonSlice voices and personalities are ignored.
-* Start with `await avatar.start(session, room=ctx.room)`.
-* Do not manually create `/api/liveai/sessions` from a normal LiveKit plugin integration unless the official docs explicitly require it for the selected path.
+## Node implementation
 
-## Node/TypeScript wiring pattern
+```ts
+import { voice } from "@livekit/agents";
+import * as lemonslice from "@livekit/agents-plugin-lemonslice";
 
-For Node projects, install:
+const session = new voice.AgentSession({
+  // Preserve existing STT, LLM, TTS, VAD, turn detection, and tools.
+});
 
-```bash
-npm install @livekit/agents-plugin-lemonslice
+const avatar = new lemonslice.AvatarSession({
+  agentImageUrl: "https://example.com/avatar.png",
+  // agentId: "...",
+  // agentImage: "/absolute/path/avatar.png", // or Buffer, if installed types support it
+  // agentImageMimeType: "image/jpeg",
+  agentPrompt: "a warm person speaking naturally",
+  agentIdlePrompt: "a calm attentive person",
+  idleTimeout: 600,
+  extraPayload: {
+    model: "flash",
+    aspectRatio: "1x1",
+    responseDoneTimeout: 0.8,
+    simulcast: true,
+  },
+});
+
+const sessionId = await avatar.start(session, room);
+await session.start(/* existing options */);
 ```
 
-or:
+Before committing, confirm every first-class option and `extraPayload` key against the installed package. Do not invent imports or constructor fields.
 
-```bash
-pnpm add @livekit/agents-plugin-lemonslice
+## Readiness contract
+
+Treat readiness as two separate gates:
+
+1. **Pipeline readiness**
+   - topic: `lemonslice`
+   - payload: `type: "bot_ready"`
+   - use for startup lifecycle, control eligibility, and startup timeout handling.
+2. **Visual readiness**
+   - frontend first rendered frame
+   - use to transition from ringing/loading UI to active-call UI.
+
+`bot_ready` is not proof that a frame rendered.
+
+```tsx
+import { LiveKitAvatarReadyWatcher } from "@lemonsliceai/avatar/livekit-react";
+
+<LiveKitAvatarReadyWatcher onReady={() => setAvatarReady(true)} />
 ```
 
-Then follow the official Node LiveKit example for the exact import/export shape.
+Also handle `RoomEvent.ParticipantDisconnected` for the identified avatar and `RoomEvent.Disconnected` for room failure.
 
-Preserve the same conceptual wiring:
-* create the LemonSlice avatar session from the official LiveKit LemonSlice plugin
-* configure `agent_id` or `agent_image_url`
-* keep `LEMONSLICE_API_KEY` server-side
-* start the avatar against the active LiveKit agent session and room
-* wait for `bot_ready` before treating the avatar as usable
+## Events and failures
 
-Do not translate the Python import literally if the official Node package exports a different symbol shape.
+Handle LemonSlice topic events including `bot_ready`, `idle_timeout`, `error` with fatal classification, `video_generation_error`, and metrics such as `time_to_first_push` and `tts_audio_delay` where exposed.
 
-## Readiness and events
+Handle `startup_failure` on topic `lemonslice/message`. Add a bounded startup timer. Subscribe to `AgentSession` errors and distinguish STT, LLM, and TTS failures; terminate on non-recoverable errors.
 
-Do not treat LiveKit participant join as avatar readiness.
+## Latency measurement
 
-The explicit readiness signal is:
-- `bot_ready`
+Measure separately:
 
-Official LiveKit RPC topic:
-- topic: `lemonslice`
-- readiness type: `bot_ready`
+- end of user speech;
+- final STT;
+- LLM first token and completion;
+- first TTS audio;
+- LemonSlice time-to-first-push;
+- remote track subscription;
+- first rendered frame.
 
-The agent must wait for `bot_ready` before:
-- showing “avatar ready”
-- sending control/actions
-- assuming video generation is healthy
-- allowing user-facing interactions that depend on the avatar
+Published Flash benchmark figures, including 471 ms avatar TTFB and about 2.04 seconds average end-to-end latency, describe a dated benchmark with a specific STT/LLM/TTS stack and measurement definition. They are not universal SLAs.
 
-Handle these LemonSlice data-channel events:
-- `bot_ready`: avatar is initialized and ready.
-- `idle_timeout`: avatar session idled out. Stop waiting for output, clean up state, and shut down if appropriate.
-- `error`: general LemonSlice/avatar error. Log with context, surface a safe error state, and clean up.
-- `video_generation_error`: avatar video generation failed. Treat as avatar-path failure, not necessarily LiveKit room failure.
-- `metric`: telemetry/observability event. For `metric`, record useful fields such as `time_to_first_push` and `tts_audio_delay`. Treat `tts_audio_delay=true` as a latency/realtime-delivery signal, not as a LemonSlice crash by itself.
+## Cleanup and validation
 
-Add a startup timeout around `bot_ready`. If it never arrives, fail safely, clean up the room/avatar, and expose a retry path.
+Cover user hangup, avatar participant disconnect, room disconnect, startup timeout, fatal pipeline error, process shutdown, and idle timeout.
 
-## Shutdown behavior
+- `ctx.room.disconnect()` ends the room and avatar session.
+- `ctx.shutdown()` stops the job/avatar without necessarily closing the room.
+- Runtime `terminate` ends only LemonSlice avatar generation.
 
-Implement cleanup for:
-- normal worker shutdown
-- user hangup
-- LiveKit room disconnect
-- `idle_timeout`
-- startup timeout waiting for `bot_ready`
-- `error`
-- `video_generation_error`
-- process signals / deployment shutdown
+Do not leave a disabled idle timeout without explicit termination and billing safeguards.
 
-The official docs give three exact shutdown paths:
-1. `ctx.room.disconnect()` closes the LiveKit room connection and ends the LemonSlice avatar session.
-2. `ctx.shutdown()` stops the Agent `JobContext` and LemonSlice avatar session without shutting down the LiveKit room.
-3. `terminate` shuts down only the LemonSlice avatar without shutting down the LiveKit room or agent.
+Run the repository's formatter, type checker, tests, and build. Verify no browser bundle contains `LEMONSLICE_API_KEY`, readiness uses first-frame gating, existing providers remain intact, and the installed plugin accepts all configured fields.
 
-Also, if not shut down, the LemonSlice session remains active until idle timeout or the 1-hour maximum session duration expires.
-
-Do not confuse terminating LemonSlice avatar generation with deleting unrelated app state.
-
-## Gemini Live S2S guidance
-
-If the LiveKit agent uses Gemini Live S2S and the official LemonSlice docs path is being followed, set:
-
-```python
-response_done_timeout=0.8
-```
-
-Use this to help LemonSlice detect response completion when end-of-response events are missing or delayed.
-
-Do not blindly add this to every project. Add it when:
-* the project uses Gemini Live S2S, or
-* the official docs/example for the selected LiveKit path explicitly recommends it.
-
-## Common mistakes
-
-- Using this skill before `lemonslice-integration-choice` selects LiveKit.
-- Editing a Pipecat project as if it were LiveKit.
-- Installing the Python package in a Node project or the Node package in a Python project.
-- Exposing `LEMONSLICE_API_KEY` to frontend/browser/mobile code.
-- Manually calling LemonSlice REST session creation in a normal LiveKit plugin integration.
-- Providing both `agent_id` and `agent_image_url`.
-- Providing neither `agent_id` nor `agent_image_url`.
-- Treating LiveKit participant join as readiness instead of waiting for `bot_ready`.
-- Ignoring `idle_timeout`, `error`, `video_generation_error`, and startup timeout paths.
-- Treating `metric` as an error.
-- Forgetting shutdown cleanup.
-- Adding `response_done_timeout=0.8` to non-Gemini projects without docs-based reason.
-- Inventing Node import names instead of following the official Node example.
-
-## Validation checklist
-
-- [ ] Did `lemonslice-integration-choice` explicitly select LiveKit?
-- [ ] Did I inspect repo evidence before editing?
-- [ ] Did I detect Python vs Node/TypeScript correctly?
-- [ ] Did I install the correct official package for that language?
-- [ ] Is `LEMONSLICE_API_KEY` only in server/agent environment?
-- [ ] Did I avoid exposing API keys to frontend code?
-- [ ] Does the implementation use `lemonslice.AvatarSession` or the official Node equivalent?
-- [ ] Does the implementation provide exactly one of `agent_id` or `agent_image_url`?
-- [ ] For Python, does it use `await avatar.start(session, room=ctx.room)`?
-- [ ] Does readiness wait for `bot_ready`, not participant join?
-- [ ] Are `idle_timeout`, `error`, `video_generation_error`, and `metric` handled?
-- [ ] Is there a startup timeout if `bot_ready` never arrives?
-- [ ] Is shutdown/cleanup implemented for normal end, disconnect, timeout, and errors?
-- [ ] If Gemini Live S2S is used, is `response_done_timeout=0.8` configured?
-- [ ] Did I avoid raw REST session creation unless the official docs require it for this path?
+References:
+- https://lemonslice.com/docs/livekit/index.md
+- https://lemonslice.com/docs/reference/production-checklist.md
+- https://lemonslice.com/blog/lemonslice-flash

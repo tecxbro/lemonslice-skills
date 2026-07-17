@@ -1,0 +1,80 @@
+name: LemonSlice behavioral evaluations
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Prepare fixtures or score externally generated agent results
+        required: true
+        default: prepare
+        type: choice
+        options:
+          - prepare
+          - score
+      source_run_id:
+        description: Workflow run containing an artifact named agent-results (score mode)
+        required: false
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.mode }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  prepare:
+    if: inputs.mode == 'prepare'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Materialize isolated workspaces
+        run: python evals/materialize_workspaces.py --output artifacts/eval-inputs
+      - name: Upload behavioral evaluation inputs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: behavioral-eval-inputs
+          path: artifacts/eval-inputs
+          if-no-files-found: error
+          retention-days: 14
+
+  score:
+    if: inputs.mode == 'score'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Validate source run input
+        run: |
+          test -n "${{ inputs.source_run_id }}" || {
+            echo "source_run_id is required in score mode" >&2
+            exit 2
+          }
+      - name: Download externally generated agent results
+        run: gh run download "${{ inputs.source_run_id }}" -n agent-results -D results
+      - name: Score materialized results
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          python evals/run_evals.py --results-dir results 2>&1 | tee artifacts/behavioral-score.txt
+      - name: Upload scoring evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: behavioral-eval-score
+          path: |
+            artifacts/behavioral-score.txt
+            results
+          if-no-files-found: warn
+          retention-days: 14

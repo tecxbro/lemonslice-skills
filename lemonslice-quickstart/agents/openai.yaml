@@ -1,0 +1,4 @@
+interface:
+  display_name: "LemonSlice Quickstart"
+  short_description: "Bootstrap a new official LemonSlice LiveKit app"
+  default_prompt: "Create a new LemonSlice app from the official Quickstart, preserve the package manager, keep secrets server-side, and verify the first rendered avatar frame."

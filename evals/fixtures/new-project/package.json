@@ -1,0 +1,8 @@
+{
+  "name": "lemonslice-new-project-fixture",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/quickstart.test.mjs",
+    "typecheck": "node scripts/typecheck.mjs"
+  }
+}

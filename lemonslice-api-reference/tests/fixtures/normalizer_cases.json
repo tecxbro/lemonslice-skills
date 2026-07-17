@@ -1,0 +1,1023 @@
+{
+  "compare_cases": [
+    {
+      "contains": "response contracts changed",
+      "current": {
+        "operations": {
+          "POST /rooms": {
+            "parameters": {
+              "path": {},
+              "query": {}
+            },
+            "request": {
+              "body_required": false,
+              "content_types": [],
+              "media_types": {}
+            },
+            "responses": {
+              "201": {
+                "content_types": [
+                  "application/json"
+                ],
+                "media_types": {
+                  "application/json": {
+                    "schema": {
+                      "required": [
+                        "room_url",
+                        "token",
+                        "session_id"
+                      ],
+                      "types": [
+                        "object"
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "required": [
+                    "room_url",
+                    "token",
+                    "session_id"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                }
+              }
+            },
+            "security": []
+          }
+        },
+        "paths": [
+          "/rooms"
+        ]
+      },
+      "name": "hosted required response field removed",
+      "snapshot": {
+        "operations": {
+          "POST /rooms": {
+            "parameters": {
+              "path": {},
+              "query": {}
+            },
+            "request": {
+              "body_required": false,
+              "content_types": [],
+              "media_types": {}
+            },
+            "responses": {
+              "201": {
+                "content_types": [
+                  "application/json"
+                ],
+                "media_types": {
+                  "application/json": {
+                    "schema": {
+                      "required": [
+                        "image_url",
+                        "room_url",
+                        "session_id",
+                        "token"
+                      ],
+                      "types": [
+                        "object"
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "required": [
+                    "image_url",
+                    "room_url",
+                    "session_id",
+                    "token"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                }
+              }
+            },
+            "security": []
+          }
+        },
+        "paths": [
+          "/rooms"
+        ]
+      }
+    },
+    {
+      "contains": "parameters changed",
+      "current": {
+        "operations": {
+          "GET /items": {
+            "parameters": {
+              "path": {},
+              "query": {
+                "limit": {
+                  "required": false,
+                  "schema": {
+                    "maximum": 50,
+                    "minimum": 1,
+                    "types": [
+                      "integer"
+                    ]
+                  }
+                }
+              }
+            },
+            "request": {
+              "body_required": false,
+              "content_types": [],
+              "media_types": {}
+            },
+            "responses": {},
+            "security": []
+          }
+        },
+        "paths": [
+          "/items"
+        ]
+      },
+      "name": "pagination maximum changed",
+      "snapshot": {
+        "operations": {
+          "GET /items": {
+            "parameters": {
+              "path": {},
+              "query": {
+                "limit": {
+                  "required": false,
+                  "schema": {
+                    "maximum": 100,
+                    "minimum": 1,
+                    "types": [
+                      "integer"
+                    ]
+                  }
+                }
+              }
+            },
+            "request": {
+              "body_required": false,
+              "content_types": [],
+              "media_types": {}
+            },
+            "responses": {},
+            "security": []
+          }
+        },
+        "paths": [
+          "/items"
+        ]
+      }
+    },
+    {
+      "contains_all": [
+        "paths added",
+        "paths removed"
+      ],
+      "current": {
+        "operations": {},
+        "paths": [
+          "/new"
+        ]
+      },
+      "name": "added and removed endpoint",
+      "snapshot": {
+        "operations": {},
+        "paths": [
+          "/old"
+        ]
+      }
+    }
+  ],
+  "normalize_cases": [
+    {
+      "expected": {
+        "parameters": {
+          "path": {},
+          "query": {}
+        },
+        "request": {
+          "body_required": false,
+          "content_types": [],
+          "media_types": {}
+        },
+        "responses": {
+          "201": {
+            "content_types": [],
+            "media_types": {}
+          }
+        },
+        "security": [
+          "X-API-Key"
+        ]
+      },
+      "name": "inherited security",
+      "operation": "POST /sessions",
+      "spec": {
+        "components": {
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "header",
+              "name": "X-API-Key",
+              "type": "apiKey"
+            }
+          }
+        },
+        "openapi": "3.1.0",
+        "paths": {
+          "/sessions": {
+            "post": {
+              "responses": {
+                "201": {
+                  "description": "ok"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "parameters": {
+          "path": {},
+          "query": {}
+        },
+        "request": {
+          "body_required": false,
+          "content_types": [
+            "application/json",
+            "multipart/form-data"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "agent_id"
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "required": [
+              "agent_id"
+            ]
+          }
+        },
+        "responses": {
+          "201": {
+            "content_types": [],
+            "media_types": {}
+          }
+        },
+        "security": []
+      },
+      "name": "multipart content remains separate",
+      "operation": "POST /sessions",
+      "spec": {
+        "openapi": "3.1.0",
+        "paths": {
+          "/sessions": {
+            "post": {
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "required": [
+                        "agent_id"
+                      ]
+                    }
+                  },
+                  "multipart/form-data": {
+                    "schema": {
+                      "required": [
+                        "image"
+                      ]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {
+                  "description": "ok"
+                }
+              },
+              "security": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "expected": {
+        "parameters": {
+          "path": {},
+          "query": {
+            "limit": {
+              "required": true,
+              "schema": {
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1,
+                "types": [
+                  "integer"
+                ]
+              }
+            }
+          }
+        },
+        "request": {
+          "body_required": false,
+          "content_types": [],
+          "media_types": {}
+        },
+        "responses": {
+          "200": {
+            "content_types": [],
+            "media_types": {}
+          }
+        },
+        "security": []
+      },
+      "name": "required query parameter and bounds",
+      "operation": "GET /items",
+      "spec": {
+        "openapi": "3.1.0",
+        "paths": {
+          "/items": {
+            "get": {
+              "parameters": [
+                {
+                  "in": "query",
+                  "name": "limit",
+                  "required": true,
+                  "schema": {
+                    "default": 25,
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "ok"
+                }
+              },
+              "security": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "expected": {
+        "parameters": {
+          "path": {},
+          "query": {}
+        },
+        "request": {
+          "body_required": false,
+          "content_types": [],
+          "media_types": {}
+        },
+        "responses": {
+          "201": {
+            "content_types": [
+              "application/json"
+            ],
+            "media_types": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "image_url": {
+                      "format": "uri",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "room_url": {
+                      "format": "uri",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "session_id": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "token": {
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "image_url",
+                    "room_url",
+                    "session_id",
+                    "token"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                }
+              }
+            },
+            "schema": {
+              "properties": {
+                "image_url": {
+                  "format": "uri",
+                  "types": [
+                    "string"
+                  ]
+                },
+                "room_url": {
+                  "format": "uri",
+                  "types": [
+                    "string"
+                  ]
+                },
+                "session_id": {
+                  "types": [
+                    "string"
+                  ]
+                },
+                "token": {
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "image_url",
+                "room_url",
+                "session_id",
+                "token"
+              ],
+              "types": [
+                "object"
+              ]
+            }
+          }
+        },
+        "security": []
+      },
+      "name": "ref response schema",
+      "operation": "POST /rooms",
+      "spec": {
+        "components": {
+          "schemas": {
+            "Room": {
+              "properties": {
+                "image_url": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "room_url": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                },
+                "token": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "room_url",
+                "token",
+                "image_url",
+                "session_id"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "openapi": "3.1.0",
+        "paths": {
+          "/rooms": {
+            "post": {
+              "responses": {
+                "201": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Room"
+                      }
+                    }
+                  },
+                  "description": "ok"
+                }
+              },
+              "security": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "expected": {
+        "parameters": {
+          "path": {},
+          "query": {}
+        },
+        "request": {
+          "body_required": false,
+          "content_types": [],
+          "media_types": {}
+        },
+        "responses": {
+          "200": {
+            "content_types": [
+              "application/json"
+            ],
+            "media_types": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "cost": {
+                      "nullable": true,
+                      "types": [
+                        "null",
+                        "number"
+                      ]
+                    },
+                    "session_status": {
+                      "enum": [
+                        "ACTIVE",
+                        "COMPLETED",
+                        "FAILED",
+                        "QUEUED",
+                        "TIMED_OUT"
+                      ],
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "session_status"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                }
+              }
+            },
+            "schema": {
+              "properties": {
+                "cost": {
+                  "nullable": true,
+                  "types": [
+                    "null",
+                    "number"
+                  ]
+                },
+                "session_status": {
+                  "enum": [
+                    "ACTIVE",
+                    "COMPLETED",
+                    "FAILED",
+                    "QUEUED",
+                    "TIMED_OUT"
+                  ],
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "session_status"
+              ],
+              "types": [
+                "object"
+              ]
+            }
+          }
+        },
+        "security": []
+      },
+      "name": "status enum and nullable response field",
+      "operation": "GET /sessions/{session_id}",
+      "spec": {
+        "openapi": "3.1.0",
+        "paths": {
+          "/sessions/{session_id}": {
+            "get": {
+              "responses": {
+                "200": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "properties": {
+                          "cost": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "session_status": {
+                            "enum": [
+                              "QUEUED",
+                              "ACTIVE",
+                              "COMPLETED",
+                              "TIMED_OUT",
+                              "FAILED"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "session_status"
+                        ],
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "description": "ok"
+                }
+              },
+              "security": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "expected": {
+        "parameters": {
+          "path": {},
+          "query": {}
+        },
+        "request": {
+          "body_required": false,
+          "content_types": [],
+          "media_types": {}
+        },
+        "responses": {
+          "400": {
+            "content_types": [
+              "application/problem+json"
+            ],
+            "media_types": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "detail"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "name": "error response schema and content type",
+      "operation": "POST /x",
+      "spec": {
+        "components": {
+          "responses": {
+            "BadRequest": {
+              "content": {
+                "application/problem+json": {
+                  "schema": {
+                    "properties": {
+                      "detail": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "detail"
+                    ],
+                    "type": "object"
+                  }
+                }
+              },
+              "description": "bad"
+            }
+          }
+        },
+        "openapi": "3.1.0",
+        "paths": {
+          "/x": {
+            "post": {
+              "responses": {
+                "400": {
+                  "$ref": "#/components/responses/BadRequest"
+                }
+              },
+              "security": []
+            }
+          }
+        }
+      }
+    }
+  ],
+  "schema_cases": [
+    {
+      "expected": {
+        "one_of": [
+          {
+            "forbidden": [
+              "agent_id"
+            ],
+            "required": [
+              "agent_image_url"
+            ],
+            "title": "By agent_image_url"
+          },
+          {
+            "forbidden": [
+              "agent_image_url"
+            ],
+            "required": [
+              "agent_id"
+            ],
+            "title": "By agent_id"
+          }
+        ],
+        "properties": {
+          "transport_type": {
+            "enum": [
+              "daily",
+              "livekit"
+            ],
+            "types": [
+              "string"
+            ]
+          }
+        },
+        "required": [
+          "transport_type"
+        ],
+        "types": [
+          "object"
+        ]
+      },
+      "name": "oneOf mutually exclusive image selectors",
+      "schema": {
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "agent_id"
+              ]
+            },
+            "required": [
+              "agent_image_url"
+            ],
+            "title": "By agent_image_url"
+          },
+          {
+            "not": {
+              "required": [
+                "agent_image_url"
+              ]
+            },
+            "required": [
+              "agent_id"
+            ],
+            "title": "By agent_id"
+          }
+        ],
+        "properties": {
+          "transport_type": {
+            "enum": [
+              "livekit",
+              "daily"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "transport_type"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "expected": {
+        "all_of": [
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "x"
+                ],
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "a"
+            ]
+          },
+          {
+            "required": [
+              "b"
+            ]
+          }
+        ],
+        "required": [
+          "a",
+          "b"
+        ]
+      },
+      "name": "allOf composition",
+      "schema": {
+        "allOf": [
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "x"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "a"
+            ]
+          },
+          {
+            "required": [
+              "b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "any_of": [
+          {
+            "required": [
+              "email"
+            ]
+          },
+          {
+            "required": [
+              "phone"
+            ]
+          }
+        ]
+      },
+      "name": "anyOf alternatives",
+      "schema": {
+        "anyOf": [
+          {
+            "required": [
+              "email"
+            ]
+          },
+          {
+            "required": [
+              "phone"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "dependent_required": {
+          "credit_card": [
+            "billing_address"
+          ]
+        },
+        "forbidden": [
+          "legacy"
+        ]
+      },
+      "name": "not and dependentRequired",
+      "schema": {
+        "dependentRequired": {
+          "credit_card": [
+            "billing_address"
+          ]
+        },
+        "not": {
+          "required": [
+            "legacy"
+          ]
+        }
+      }
+    },
+    {
+      "expected": {
+        "discriminator": {
+          "mapping": {
+            "terminate": "#/components/schemas/Terminate",
+            "update-image": "#/components/schemas/UpdateImage"
+          },
+          "property_name": "event"
+        },
+        "one_of": [
+          {
+            "event": "terminate",
+            "properties": {
+              "event": {
+                "const": "terminate",
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          {
+            "event": "update-image",
+            "properties": {
+              "event": {
+                "const": "update-image",
+                "types": [
+                  "string"
+                ]
+              },
+              "image_url": {
+                "format": "uri",
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "event",
+              "image_url"
+            ]
+          }
+        ]
+      },
+      "name": "control discriminated union",
+      "schema": {
+        "discriminator": {
+          "mapping": {
+            "terminate": "#/components/schemas/Terminate",
+            "update-image": "#/components/schemas/UpdateImage"
+          },
+          "propertyName": "event"
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "event": {
+                "const": "terminate",
+                "type": "string"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          {
+            "properties": {
+              "event": {
+                "const": "update-image",
+                "type": "string"
+              },
+              "image_url": {
+                "format": "uri",
+                "type": "string"
+              }
+            },
+            "required": [
+              "event",
+              "image_url"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

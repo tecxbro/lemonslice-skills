@@ -1,0 +1,8 @@
+{
+  "name": "fixture-hosted-daily",
+  "private": true,
+  "dependencies": {
+    "next": "latest",
+    "@daily-co/daily-react": "latest"
+  }
+}

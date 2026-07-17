@@ -1,0 +1,4 @@
+interface:
+  display_name: "LemonSlice Meeting Platforms"
+  short_description: "Add LemonSlice avatars to Zoom, Meet, Teams, or Webex"
+  default_prompt: "Implement the third-party meeting workflow in this repository, preferring supported LiveKit plugin functionality and guaranteeing leave/cleanup."

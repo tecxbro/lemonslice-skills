@@ -1,0 +1,109 @@
+name: LemonSlice static skill validation
+
+on:
+  push:
+    paths:
+      - "**/SKILL.md"
+      - "**/references/**"
+      - "README.md"
+      - "evals/**"
+      - "scripts/**"
+      - "references/implementation-contract.md"
+      - ".github/workflows/evals.yml"
+  pull_request:
+    paths:
+      - "**/SKILL.md"
+      - "**/references/**"
+      - "README.md"
+      - "evals/**"
+      - "scripts/**"
+      - "references/implementation-contract.md"
+      - ".github/workflows/evals.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-skill-structure:
+    name: Validate skill structure
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Validate
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          python scripts/validate_skills.py 2>&1 | tee artifacts/skill-structure.txt
+      - name: Upload structure report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: skill-structure-report
+          path: artifacts/skill-structure.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  validate-evaluation-definitions:
+    name: Validate evaluation definitions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: python evals/run_evals.py --validate
+
+  test-openapi-normalizer:
+    name: Unit-test OpenAPI normalization
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s lemonslice-api-reference/tests -p "test_*.py" -v
+
+  check-documentation-links:
+    name: Check documentation links
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Validate links
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          python scripts/validate_skills.py --links-only 2>&1 | tee artifacts/documentation-links.txt
+      - name: Upload link report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: documentation-links-report
+          path: artifacts/documentation-links.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  check-generated-json-format:
+    name: Check generated JSON formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/format_repository_data.py --check

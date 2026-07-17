@@ -1,0 +1,385 @@
+{
+  "components": {
+    "responses": {
+      "Unauthorized": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        },
+        "description": "Authentication denied"
+      }
+    },
+    "schemas": {
+      "AgentInfo": {
+        "properties": {
+          "agent_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent_id"
+        ],
+        "type": "object"
+      },
+      "DailyTransportProperties": {
+        "dependentRequired": {
+          "enable_recording": [
+            "recordings_bucket"
+          ]
+        },
+        "properties": {
+          "daily_room_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "enable_recording": {
+            "enum": [
+              "cloud",
+              "cloud-audio-only",
+              "local",
+              "raw-tracks"
+            ],
+            "type": "string"
+          },
+          "recordings_bucket": {
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "Error": {
+        "properties": {
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "type": "object"
+      },
+      "LiveKitTransportProperties": {
+        "properties": {
+          "livekit_token": {
+            "type": "string"
+          },
+          "livekit_url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "livekit_url",
+          "livekit_token"
+        ],
+        "type": "object"
+      },
+      "Room": {
+        "properties": {
+          "image_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "room_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "room_url",
+          "token",
+          "image_url",
+          "session_id"
+        ],
+        "type": "object"
+      },
+      "Session": {
+        "properties": {
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "type": "object"
+      },
+      "SessionInput": {
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "agent_id"
+              ]
+            },
+            "properties": {
+              "agent_image_url": {
+                "format": "uri",
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_image_url"
+            ],
+            "title": "By agent_image_url",
+            "type": "object"
+          },
+          {
+            "not": {
+              "required": [
+                "agent_image_url"
+              ]
+            },
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ],
+            "title": "By agent_id",
+            "type": "object"
+          }
+        ],
+        "properties": {
+          "idle_timeout": {
+            "default": 60,
+            "type": "integer"
+          },
+          "properties": {
+            "discriminator": {
+              "mapping": {
+                "daily": "#/components/schemas/DailyTransportProperties",
+                "livekit": "#/components/schemas/LiveKitTransportProperties"
+              },
+              "propertyName": "transport_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LiveKitTransportProperties"
+              },
+              {
+                "$ref": "#/components/schemas/DailyTransportProperties"
+              }
+            ]
+          },
+          "transport_type": {
+            "enum": [
+              "livekit",
+              "daily"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "transport_type"
+        ],
+        "type": "object",
+        "unevaluatedProperties": false
+      }
+    },
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "in": "header",
+        "name": "X-API-Key",
+        "type": "apiKey"
+      }
+    }
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/liveai/rooms": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "pagination": {
+                      "properties": {
+                        "has_more": {
+                          "type": "boolean"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "page",
+                        "limit",
+                        "total",
+                        "total_pages",
+                        "has_more"
+                      ],
+                      "type": "object"
+                    },
+                    "rooms": {
+                      "items": {
+                        "$ref": "#/components/schemas/Room"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "rooms",
+                    "pagination"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentInfo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            },
+            "description": "created"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/liveai/sessions": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "created"
+          }
+        }
+      }
+    },
+    "/liveai/sessions/{session_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "cost": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "session_status": {
+                      "enum": [
+                        "QUEUED",
+                        "ACTIVE",
+                        "COMPLETED",
+                        "TIMED_OUT",
+                        "FAILED"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "session_status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ]
+}

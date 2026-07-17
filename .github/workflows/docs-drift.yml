@@ -1,0 +1,78 @@
+name: LemonSlice docs drift
+
+on:
+  schedule:
+    - cron: "17 15 * * 1"
+  workflow_dispatch:
+  push:
+    paths:
+      - "**/SKILL.md"
+      - "**/references/**"
+      - "README.md"
+      - "lemonslice-api-reference/scripts/**"
+      - "lemonslice-api-reference/tests/**"
+      - ".github/workflows/docs-drift.yml"
+  pull_request:
+    paths:
+      - "**/SKILL.md"
+      - "**/references/**"
+      - "README.md"
+      - "lemonslice-api-reference/scripts/**"
+      - "lemonslice-api-reference/tests/**"
+      - ".github/workflows/docs-drift.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  docs-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Download and probe source contracts
+        run: |
+          mkdir -p artifacts/sources
+          python lemonslice-api-reference/scripts/sync_openapi.py \
+            --download-sources \
+            --source-dir artifacts/sources \
+            --probe-count 3 \
+            --report artifacts/docs-drift.md
+      - name: Normalize the downloaded OpenAPI
+        run: |
+          python lemonslice-api-reference/scripts/sync_openapi.py \
+            --write-snapshot \
+            --openapi-file artifacts/sources/openapi.json \
+            --llms-file artifacts/sources/llms.txt \
+            --source-metadata-file artifacts/sources/source-metadata.json \
+            --snapshot artifacts/current-openapi.snapshot.json
+      - name: Compare the same downloaded sources
+        run: |
+          python lemonslice-api-reference/scripts/sync_openapi.py \
+            --check \
+            --openapi-file artifacts/sources/openapi.json \
+            --llms-file artifacts/sources/llms.txt \
+            --source-metadata-file artifacts/sources/source-metadata.json \
+            --report artifacts/docs-drift.md
+      - name: Upload source evidence and normalized contract
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lemonslice-docs-drift
+          path: |
+            artifacts/sources/openapi.json
+            artifacts/sources/openapi.probe-*.json
+            artifacts/sources/llms.txt
+            artifacts/sources/llms.probe-*.txt
+            artifacts/sources/source-metadata.json
+            artifacts/current-openapi.snapshot.json
+            artifacts/docs-drift.md
+          if-no-files-found: warn
+          retention-days: 14
