@@ -15,15 +15,18 @@ Prefer framework plugins when the repository already uses LiveKit Agents or Pipe
 - Create with `POST /liveai/sessions`, not `/liveai/rooms`.
 - Keep `X-API-Key` in trusted server code.
 - Use `transport_type: "livekit"` or `"daily"` and the matching transport properties.
-- JSON requests use exactly one of `agent_id` or `agent_image_url`; multipart requests can upload the image file directly.
-- The current endpoint schema exposes `model`, `aspect_ratio`, `simulcast`, and recording configuration. Validate the live schema before using volatile options.
+- Raw JSON requests use exactly one of `agent_id` or `agent_image_url`.
+- Do not send `agent_id` and `agent_image_url` together.
+- The raw REST contract currently documents `agent_prompt`, `agent_idle_prompt`, `idle_timeout`, `response_done_timeout`, and LiveKit-only `simulcast`.
+- Model and aspect-ratio options may exist in framework plugins or account-specific surfaces. Do not copy plugin-only fields into raw REST unless the current OpenAPI explicitly exposes them.
+- Do not assume raw file upload support. Upload the image to an authorized URL first unless the current endpoint explicitly documents multipart input.
 - Validate the full response shape and persist `session_id` against an authorized app-owned record.
 - Use an abortable request timeout and structured errors.
 - Implement explicit termination and lifecycle cleanup.
 
 ## Plugin/docs drift
 
-Raw REST and framework plugins can expose different constructor fields or release on different schedules. Inspect the current endpoint schema for REST calls and the installed package signature for LiveKit/Pipecat code. Never assume an option supported by one surface is accepted by another.
+Raw REST and framework plugins are separate contract surfaces. Inspect the current endpoint schema for REST calls and the installed package signature for LiveKit/Pipecat code. Never transfer a field between surfaces without verification.
 
 ## Meeting routing
 
@@ -45,10 +48,11 @@ try {
     body: JSON.stringify({
       agent_image_url: input.agentImageUrl,
       transport_type: "livekit",
-      model: "flash",
-      aspect_ratio: "1x1",
-      simulcast: true,
+      agent_prompt: "a warm person speaking naturally",
+      agent_idle_prompt: "a calm attentive person",
       idle_timeout: 600,
+      response_done_timeout: 0.5,
+      simulcast: true,
       properties: {
         livekit_url: input.livekitUrl,
         livekit_token: input.livekitToken,
@@ -57,18 +61,46 @@ try {
     signal: controller.signal,
   });
 
-  const body = await response.json().catch(() => null);
-  if (!response.ok || !body || typeof body.session_id !== "string") {
+  const text = await response.text();
+  let body: unknown = null;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    // Preserve the non-JSON body in trusted structured diagnostics.
+  }
+
+  if (
+    !response.ok ||
+    !body ||
+    typeof body !== "object" ||
+    typeof (body as { session_id?: unknown }).session_id !== "string"
+  ) {
     throw new Error(`LemonSlice session create failed (${response.status})`);
   }
-  return { sessionId: body.session_id };
+
+  return { sessionId: (body as { session_id: string }).session_id };
 } finally {
   clearTimeout(timeout);
 }
 ```
 
+## Session status
+
+Use `GET /liveai/sessions/{session_id}` when the application needs backend reconciliation or status polling.
+
+Handle:
+
+- `QUEUED`
+- `ACTIVE`
+- `COMPLETED`
+- `TIMED_OUT`
+- `FAILED`
+
+Do not treat `QUEUED` as immediate failure. Warm capacity may start in seconds, while a cold start can take substantially longer. Startup timeouts should be bounded but not unrealistically short; queued sessions may require a cold start of roughly 2.5 minutes.
+
 Never return raw API keys or unrestricted transport tokens. Run available checks and verify cleanup paths.
 
 References:
 - https://lemonslice.com/docs/api-reference/create-self-managed-session.md
+- https://lemonslice.com/docs/api-reference/get-self-managed-session.md
 - https://lemonslice.com/docs/openapi.json
