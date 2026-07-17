@@ -18,8 +18,8 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SNAPSHOT = Path(__file__).resolve().parents[1] / "references" / "openapi.snapshot.json"
 SNAPSHOT_NOTES = [
     "Raw REST and framework plugin contracts are tracked separately.",
-    "The current raw SessionInput uses exactly one of agent_id or agent_image_url.",
-    "Model and aspect-ratio fields must not be inferred from framework plugin documentation.",
+    "The current raw SessionInput uses exactly one of agent_id or agent_image_url for application/json requests.",
+    "The current OpenAPI also declares multipart/form-data image upload and raw model/aspect_ratio fields; do not infer these fields when a future snapshot removes them.",
     "The control operation declares security: [] while also documenting a 401 response; preserve this as a documentation conflict.",
 ]
 
