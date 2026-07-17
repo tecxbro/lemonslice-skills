@@ -6,8 +6,9 @@ on:
       - "**/SKILL.md"
       - "**/references/**"
       - "README.md"
-      - "evals/**"
-      - "scripts/**"
+      - "maintainers/evals/**"
+      - "maintainers/openapi/**"
+      - "maintainers/validation/**"
       - "references/implementation-contract.md"
       - ".github/workflows/evals.yml"
   pull_request:
@@ -15,8 +16,9 @@ on:
       - "**/SKILL.md"
       - "**/references/**"
       - "README.md"
-      - "evals/**"
-      - "scripts/**"
+      - "maintainers/evals/**"
+      - "maintainers/openapi/**"
+      - "maintainers/validation/**"
       - "references/implementation-contract.md"
       - ".github/workflows/evals.yml"
   workflow_dispatch:
@@ -42,7 +44,7 @@ jobs:
         run: |
           mkdir -p artifacts
           set -o pipefail
-          python scripts/validate_skills.py 2>&1 | tee artifacts/skill-structure.txt
+          python maintainers/validation/validate_skills.py 2>&1 | tee artifacts/skill-structure.txt
       - name: Upload structure report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -61,7 +63,7 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - run: python evals/run_evals.py --validate
+      - run: python maintainers/evals/run_evals.py --validate
 
   test-openapi-normalizer:
     name: Unit-test OpenAPI normalization
@@ -72,7 +74,7 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - run: python -m unittest discover -s lemonslice-api-reference/tests -p "test_*.py" -v
+      - run: python -m unittest discover -s maintainers/openapi/tests -p "test_*.py" -v
 
   check-documentation-links:
     name: Check documentation links
@@ -87,7 +89,7 @@ jobs:
         run: |
           mkdir -p artifacts
           set -o pipefail
-          python scripts/validate_skills.py --links-only 2>&1 | tee artifacts/documentation-links.txt
+          python maintainers/validation/validate_skills.py --links-only 2>&1 | tee artifacts/documentation-links.txt
       - name: Upload link report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -106,4 +108,4 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - run: python scripts/format_repository_data.py --check
+      - run: python maintainers/validation/format_repository_data.py --check

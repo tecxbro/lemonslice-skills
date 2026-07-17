@@ -9,16 +9,14 @@ on:
       - "**/SKILL.md"
       - "**/references/**"
       - "README.md"
-      - "lemonslice-api-reference/scripts/**"
-      - "lemonslice-api-reference/tests/**"
+      - "maintainers/openapi/**"
       - ".github/workflows/docs-drift.yml"
   pull_request:
     paths:
       - "**/SKILL.md"
       - "**/references/**"
       - "README.md"
-      - "lemonslice-api-reference/scripts/**"
-      - "lemonslice-api-reference/tests/**"
+      - "maintainers/openapi/**"
       - ".github/workflows/docs-drift.yml"
 
 concurrency:
@@ -40,14 +38,14 @@ jobs:
       - name: Download and probe source contracts
         run: |
           mkdir -p artifacts/sources
-          python lemonslice-api-reference/scripts/sync_openapi.py \
+          python maintainers/openapi/sync_openapi.py \
             --download-sources \
             --source-dir artifacts/sources \
             --probe-count 3 \
             --report artifacts/docs-drift.md
       - name: Normalize the downloaded OpenAPI
         run: |
-          python lemonslice-api-reference/scripts/sync_openapi.py \
+          python maintainers/openapi/sync_openapi.py \
             --write-snapshot \
             --openapi-file artifacts/sources/openapi.json \
             --llms-file artifacts/sources/llms.txt \
@@ -55,7 +53,7 @@ jobs:
             --snapshot artifacts/current-openapi.snapshot.json
       - name: Compare the same downloaded sources
         run: |
-          python lemonslice-api-reference/scripts/sync_openapi.py \
+          python maintainers/openapi/sync_openapi.py \
             --check \
             --openapi-file artifacts/sources/openapi.json \
             --llms-file artifacts/sources/llms.txt \

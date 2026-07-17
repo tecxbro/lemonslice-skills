@@ -7,12 +7,25 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 TARGETS = (
-    ROOT / "evals" / "evals.json",
-    ROOT / "lemonslice-api-reference" / "references" / "openapi.snapshot.json",
-    ROOT / "lemonslice-api-reference" / "tests" / "fixtures" / "normalizer_cases.json",
-    ROOT / "lemonslice-api-reference" / "tests" / "fixtures" / "lemonslice-openapi.sanitized.json",
+    ROOT / "maintainers" / "evals" / "evals.json",
+    ROOT
+    / "lemonslice-api-reference"
+    / "references"
+    / "openapi.snapshot.json",
+    ROOT
+    / "maintainers"
+    / "openapi"
+    / "tests"
+    / "fixtures"
+    / "normalizer_cases.json",
+    ROOT
+    / "maintainers"
+    / "openapi"
+    / "tests"
+    / "fixtures"
+    / "lemonslice-openapi.sanitized.json",
 )
 
 

@@ -4,6 +4,14 @@ Agent skills for building production LemonSlice integrations.
 
 > This repository is community-maintained and is **not** the official LemonSlice skills repository.
 
+## Repository layout
+
+The installable skills live in the top-level `lemonslice-*` directories.
+They contain Markdown instructions, YAML interface metadata, and reference data.
+
+Repository tests, OpenAPI monitoring, evaluation fixtures, and validators live
+under `maintainers/` and are not part of the skill instructions.
+
 ## Install
 
 ```bash
@@ -87,10 +95,10 @@ LemonSlice documentation, OpenAPI, rendered pages, CDN edges, account entitlemen
 
 ## Maintenance
 
-- `lemonslice-api-reference/scripts/sync_openapi.py` probes source stability and tracks parameters, request media types, request schemas, response media types, response schemas, enums, constraints, nullability, security, and endpoints.
-- `lemonslice-api-reference/tests/` validates normalization offline against composition fixtures and a sanitized LemonSlice-shaped OpenAPI fixture.
-- `scripts/validate_skills.py` validates skill structure and local links across repository Markdown.
-- `scripts/format_repository_data.py` keeps generated and evaluation JSON reviewable.
+- `maintainers/openapi/sync_openapi.py` probes source stability and tracks parameters, request media types, request schemas, response media types, response schemas, enums, constraints, nullability, security, and endpoints.
+- `maintainers/openapi/tests/` validates normalization offline against composition fixtures and a sanitized LemonSlice-shaped OpenAPI fixture.
+- `maintainers/validation/validate_skills.py` validates skill structure and local links across repository Markdown.
+- `maintainers/validation/format_repository_data.py` keeps generated and evaluation JSON reviewable.
 - `.github/workflows/docs-drift.yml` downloads each live source once after repeated probes, then reuses that saved evidence for normalization and comparison.
 - `.github/workflows/evals.yml` performs **static validation only**: skill structure, evaluation definitions, normalizer tests, documentation links, and JSON formatting.
 - `.github/workflows/behavioral-evals.yml` prepares fixtures or scores results produced by an external agent executor. It does not claim to run an agent automatically.
@@ -99,12 +107,12 @@ LemonSlice documentation, OpenAPI, rendered pages, CDN edges, account entitlemen
 ## Evaluation
 
 ```bash
-python evals/run_evals.py --validate
-python evals/run_evals.py --results-dir /path/to/agent-results
+python maintainers/evals/run_evals.py --validate
+python maintainers/evals/run_evals.py --results-dir /path/to/agent-results
 ```
 
 Static validation confirms that the 31 behavioral cases, fixtures, regexes, file rules, and response assertions are well formed. It does **not** prove that an agent passed those cases.
 
-Behavioral scoring compares externally materialized agent results against original fixtures, verifies selected skills, evaluates user-facing responses, enforces required/allowed/forbidden file patterns, and scores command results produced by an externally isolated environment. The scorer itself never executes agent-modified project code. See [`evals/README.md`](evals/README.md).
+Behavioral scoring compares externally materialized agent results against original fixtures, verifies selected skills, evaluates user-facing responses, enforces required/allowed/forbidden file patterns, and scores command results produced by an externally isolated environment. The scorer itself never executes agent-modified project code. See [`maintainers/evals/README.md`](maintainers/evals/README.md).
 
 License: MIT.

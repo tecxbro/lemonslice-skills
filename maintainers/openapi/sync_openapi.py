@@ -26,7 +26,12 @@ from typing import Any, Callable
 DEFAULT_OPENAPI_URL = "https://lemonslice.com/docs/openapi.json"
 DEFAULT_LLMS_URL = "https://lemonslice.com/docs/llms.txt"
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_SNAPSHOT = Path(__file__).resolve().parents[1] / "references" / "openapi.snapshot.json"
+DEFAULT_SNAPSHOT = (
+    ROOT
+    / "lemonslice-api-reference"
+    / "references"
+    / "openapi.snapshot.json"
+)
 SOURCE_INCONSISTENT_EXIT = 3
 
 SCHEMA_KEYS = (

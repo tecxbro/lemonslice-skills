@@ -6,23 +6,17 @@ license: MIT
 
 # LemonSlice API reference workflow
 
-Use generated references for exact contracts:
+Use the committed generated references for the last audited contract:
 
-- [`references/endpoint-matrix.md`](references/endpoint-matrix.md)
-- [`references/openapi.snapshot.json`](references/openapi.snapshot.json)
-- [`references/docs-conflicts.md`](references/docs-conflicts.md)
-- [`references/pagination.md`](references/pagination.md)
+- `references/endpoint-matrix.md`
+- `references/openapi.snapshot.json`
+- `references/docs-conflicts.md`
+- `references/pagination.md`
 
-Run the source probe before relying on volatile fields when internet access is available:
-
-```bash
-python lemonslice-api-reference/scripts/sync_openapi.py \
-  --download-sources \
-  --source-dir artifacts/sources \
-  --probe-count 3
-```
-
-If normalized probes conflict, stop and report source inconsistency. Do not choose one edge response automatically.
+When internet access is available and exact volatile fields matter, inspect
+the current official OpenAPI directly. If the active OpenAPI conflicts with
+the committed snapshot or rendered documentation, stop and report the
+difference rather than silently choosing one source.
 
 ## Endpoint selection
 
