@@ -35,7 +35,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Materialize isolated workspaces
-        run: python evals/materialize_workspaces.py --output artifacts/eval-inputs
+        run: python maintainers/evals/materialize_workspaces.py --output artifacts/eval-inputs
       - name: Upload behavioral evaluation inputs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -67,7 +67,7 @@ jobs:
         run: |
           mkdir -p artifacts
           set -o pipefail
-          python evals/run_evals.py --results-dir results 2>&1 | tee artifacts/behavioral-score.txt
+          python maintainers/evals/run_evals.py --results-dir results 2>&1 | tee artifacts/behavioral-score.txt
       - name: Upload scoring evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

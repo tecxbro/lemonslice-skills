@@ -7,9 +7,9 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SCRIPT = HERE.parent / "scripts" / "sync_openapi.py"
-FIXTURES = HERE / "fixtures" / "normalizer_cases.json"
-INTEGRATION_FIXTURE = HERE / "fixtures" / "lemonslice-openapi.sanitized.json"
+SCRIPT = HERE.parent / "sync_openapi.py"
+FIXTURES = HERE / "fixtures"
+INTEGRATION_FIXTURE = FIXTURES / "lemonslice-openapi.sanitized.json"
 
 spec = importlib.util.spec_from_file_location("sync_openapi", SCRIPT)
 assert spec and spec.loader
@@ -21,7 +21,7 @@ spec.loader.exec_module(sync_openapi)
 class NormalizerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.cases = json.loads(FIXTURES.read_text(encoding="utf-8"))
+        cls.cases = json.loads((FIXTURES / "normalizer_cases.json").read_text(encoding="utf-8"))
 
     def test_schema_cases(self) -> None:
         empty_spec = {"components": {"schemas": {}}}

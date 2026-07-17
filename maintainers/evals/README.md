@@ -7,7 +7,7 @@ The default GitHub workflow performs static validation of evaluation definitions
 Run the manual **LemonSlice behavioral evaluations** workflow in `prepare` mode, or run:
 
 ```bash
-python evals/materialize_workspaces.py --output artifacts/eval-inputs
+python maintainers/evals/materialize_workspaces.py --output artifacts/eval-inputs
 ```
 
 Each workspace contains the fixture, `_prompt.md`, and a small runner contract. An external agent executor should operate on a disposable copy of each workspace.
@@ -41,7 +41,7 @@ The command executor—not `run_evals.py`—is responsible for isolation. It sho
 ## Score results
 
 ```bash
-python evals/run_evals.py --results-dir results
+python maintainers/evals/run_evals.py --results-dir results
 ```
 
 The manual workflow's `score` mode downloads an artifact named `agent-results` from a supplied workflow run ID and uploads the scoring output plus per-case result workspaces.

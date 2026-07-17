@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 SKILL_GLOB = "lemonslice-*/SKILL.md"
 REQUIRED_FRONTMATTER = {"name", "description", "license"}
 NON_IMPLEMENTATION_SKILLS = {
@@ -60,7 +60,7 @@ def documentation_files() -> list[Path]:
     candidates.extend(ROOT.glob("references/**/*.md"))
     candidates.extend(ROOT.glob("lemonslice-*/SKILL.md"))
     candidates.extend(ROOT.glob("lemonslice-*/references/**/*.md"))
-    candidates.extend(ROOT.glob("evals/**/*.md"))
+    candidates.extend(ROOT.glob("maintainers/**/*.md"))
     return sorted({path for path in candidates if path.is_file()})
 
 
