@@ -37,6 +37,6 @@ Do not declare the app ready merely because the agent process started or `bot_re
 Use [`references/verification.md`](references/verification.md) as the final checklist. Do not leave the user with a detached sample file that the generated application never imports.
 
 References:
-- https://lemonslice.com/docs/quickstart.md
+- https://lemonslice.com/docs/introduction/quickstart
 - https://lemonslice.com/docs/livekit/index.md
 - https://lemonslice.com/docs/reference/production-checklist.md
