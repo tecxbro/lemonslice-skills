@@ -48,14 +48,6 @@ jobs:
           status=$?
           cat artifacts/probe.log
           exit $status
-      - name: Upload probe diagnostics
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: hardening-probe-diagnostics
-          path: artifacts
-          if-no-files-found: error
-          retention-days: 14
       - name: Generate repository snapshot from saved source
         run: |
           python lemonslice-api-reference/scripts/sync_openapi.py \
@@ -68,11 +60,27 @@ jobs:
         run: python scripts/format_repository_data.py
       - name: Validate hardening changes
         run: |
-          python -m unittest discover -s lemonslice-api-reference/tests -p "test_*.py" -v
-          python evals/run_evals.py --validate
-          python scripts/validate_skills.py
-          python scripts/validate_skills.py --links-only
-          python scripts/format_repository_data.py --check
+          set +e
+          status=0
+          python -m unittest discover -s lemonslice-api-reference/tests -p "test_*.py" -v > artifacts/normalizer-tests.log 2>&1 || status=1
+          python evals/run_evals.py --validate > artifacts/eval-validation.log 2>&1 || status=1
+          python scripts/validate_skills.py > artifacts/skill-validation.log 2>&1 || status=1
+          python scripts/validate_skills.py --links-only > artifacts/link-validation.log 2>&1 || status=1
+          python scripts/format_repository_data.py --check > artifacts/format-validation.log 2>&1 || status=1
+          cat artifacts/normalizer-tests.log
+          cat artifacts/eval-validation.log
+          cat artifacts/skill-validation.log
+          cat artifacts/link-validation.log
+          cat artifacts/format-validation.log
+          exit $status
+      - name: Upload hardening diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: hardening-diagnostics
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 14
       - name: Commit reviewed hardening pass
         run: |
           rm -rf artifacts
