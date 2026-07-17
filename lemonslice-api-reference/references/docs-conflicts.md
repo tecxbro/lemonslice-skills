@@ -2,17 +2,17 @@
 
 Audited 2026-07-17.
 
-## Control authentication
+## Control authentication and responses
 
-Rendered control examples omit `X-API-Key`; the OpenAPI operation has been observed with `security: []`; related responses can still include `401`. Keep control calls server-side, inspect current sources, and preserve known-working application behavior.
+The rendered control examples omit `X-API-Key`, and the current OpenAPI operation declares `security: []`. The current OpenAPI response set includes `413`, while the rendered page shows `200`, `400`, `404`, and `500`. Keep control calls server-side, inspect both sources, and preserve known-working application behavior rather than asserting a universal authentication rule.
 
 ## Reset idle timeout
 
-Rendered control documentation includes Reset Idle Timeout, while the downloaded OpenAPI snapshot may omit it. Do not remove working support or add it blindly; flag the conflict.
+Rendered control documentation includes Reset Idle Timeout. Confirm the current control event schema before adding or removing it, because the rendered page and downloadable OpenAPI can expose different levels of detail.
 
-## Plugin fields versus raw REST
+## Raw REST versus plugin fields
 
-LiveKit/Pipecat docs expose model, aspect ratio, and local image conveniences that may not appear in raw REST schemas. Inspect installed plugin signatures and current endpoint schemas separately.
+The current self-managed REST schema exposes `model`, `aspect_ratio`, `simulcast`, recording configuration, and multipart image upload. LiveKit and Pipecat plugin constructors can still lag or expose different first-class fields, so inspect the installed package signature separately from the endpoint schema.
 
 ## Readiness language
 

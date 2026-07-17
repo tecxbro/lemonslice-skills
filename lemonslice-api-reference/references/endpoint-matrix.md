@@ -14,4 +14,4 @@ Audited 2026-07-17.
 | `/liveai/rooms` | GET | List hosted rooms | `X-API-Key` |
 | `/liveai/rooms/{session_id}` | GET | Get hosted room | `X-API-Key` |
 
-Raw self-managed REST documents exactly one of `agent_id` or `agent_image_url`. Plugin-only/local-image fields must not be assumed to work in raw REST.
+Self-managed JSON uses exactly one of `agent_id` or `agent_image_url`; multipart requests can upload an image file. The current raw REST schema also exposes `model`, `aspect_ratio`, `simulcast`, and recording configuration. Validate installed plugin signatures separately.

@@ -29,7 +29,8 @@ Do not assume one authentication rule for every endpoint.
 
 - Create, get, and list session/room endpoints require `X-API-Key`.
 - Meeting join and leave endpoints require `X-API-Key`.
-- The current control endpoint rendered example omits the header, and the OpenAPI operation has been observed with `security: []`, while related schema/docs still mention possible `401`.
+- The current control endpoint rendered example omits the header, and the OpenAPI operation declares `security: []`.
+- The current control OpenAPI response set includes `413`, while the rendered page lists `200`, `400`, `404`, and `500`.
 
 For the control endpoint:
 
@@ -50,4 +51,4 @@ Never conclude “control requires no authentication” from `security: []` alon
 6. Preserve app authorization and ownership.
 7. Record docs/version conflicts in the implementation report.
 
-`Reset Idle Timeout` appears in rendered control documentation but can be absent from the downloadable OpenAPI; treat it as a documented conflict, not a field to invent silently.
+`Reset Idle Timeout` appears in rendered control documentation. Verify the current control-event schema before changing support because rendered docs and OpenAPI can expose different detail.

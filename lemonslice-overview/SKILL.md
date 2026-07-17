@@ -33,4 +33,4 @@ Use `lemonslice-integration-choice` for ambiguous requests. Explicit framework o
 - https://lemonslice.com/docs/livekit/index.md
 - https://lemonslice.com/docs/pipecat/index.md
 - https://lemonslice.com/docs/reference/green-screen.md
-- https://lemonslice.com/docs/api-reference/join-third-party-meeting-platform.md
+- https://lemonslice.com/docs/examples/livekit-zoom.md

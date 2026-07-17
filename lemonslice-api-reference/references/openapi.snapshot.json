@@ -1,33 +1,42 @@
 {
   "audited_at": "2026-07-17",
   "generated_from": "https://lemonslice.com/docs/openapi.json",
-  "paths": [
-    "/liveai/rooms",
-    "/liveai/rooms/{session_id}",
-    "/liveai/sessions",
-    "/liveai/sessions/{session_id}",
-    "/liveai/sessions/{session_id}/control",
-    "/liveai/sessions/{session_id}/join-meeting",
-    "/liveai/sessions/{session_id}/leave-meeting"
+  "notes": [
+    "The normalizer unions required keys across OpenAPI oneOf/anyOf alternatives. agent_id and agent_image_url are alternative JSON selectors, not fields that should be sent together.",
+    "The current self-managed schema exposes model, aspect_ratio, simulcast, and recording configuration; implementations must still validate the current endpoint and installed plugin separately.",
+    "The control operation currently declares security: [] and response codes 200, 400, 404, 413, and 500. Rendered examples omit X-API-Key and do not show 413, so control remains a documented source conflict."
   ],
   "operations": {
     "POST /liveai/sessions": {
-      "security": [
-        "X-API-Key"
-      ],
       "request": {
-        "required": [
-          "agent_id",
-          "agent_image_url",
-          "properties",
-          "transport_type"
-        ],
         "enums": {
+          "aspect_ratio": [
+            "1x1",
+            "2x3",
+            "9x16"
+          ],
+          "model": [
+            null,
+            "flash",
+            "lite",
+            "pro"
+          ],
+          "properties.enable_recording": [
+            "cloud",
+            "cloud-audio-only",
+            "local",
+            "raw-tracks"
+          ],
           "transport_type": [
             "daily",
             "livekit"
           ]
-        }
+        },
+        "required": [
+          "agent_id",
+          "agent_image_url",
+          "transport_type"
+        ]
       },
       "responses": [
         "201",
@@ -37,27 +46,30 @@
         "403",
         "404",
         "500"
+      ],
+      "security": [
+        "X-API-Key"
       ]
     },
     "POST /liveai/sessions/{session_id}/control": {
-      "security": [],
       "request": {
         "required": [
-          "event"
+          "agent_prompt",
+          "event",
+          "idle_prompt",
+          "pose_trigger"
         ]
       },
       "responses": [
         "200",
         "400",
-        "401",
         "404",
+        "413",
         "500"
-      ]
+      ],
+      "security": []
     },
     "POST /liveai/sessions/{session_id}/join-meeting": {
-      "security": [
-        "X-API-Key"
-      ],
       "request": {
         "required": [
           "broadcast_token",
@@ -73,11 +85,19 @@
         "502",
         "503",
         "504"
+      ],
+      "security": [
+        "X-API-Key"
       ]
     }
   },
-  "notes": [
-    "The control operation is intentionally tracked with security: [] because this is a known documentation conflict.",
-    "Reset Idle Timeout is tracked in docs-conflicts.md because it may be absent from the downloadable OpenAPI."
+  "paths": [
+    "/liveai/rooms",
+    "/liveai/rooms/{session_id}",
+    "/liveai/sessions",
+    "/liveai/sessions/{session_id}",
+    "/liveai/sessions/{session_id}/control",
+    "/liveai/sessions/{session_id}/join-meeting",
+    "/liveai/sessions/{session_id}/leave-meeting"
   ]
 }

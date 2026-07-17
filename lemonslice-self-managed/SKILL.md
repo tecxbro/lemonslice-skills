@@ -15,14 +15,15 @@ Prefer framework plugins when the repository already uses LiveKit Agents or Pipe
 - Create with `POST /liveai/sessions`, not `/liveai/rooms`.
 - Keep `X-API-Key` in trusted server code.
 - Use `transport_type: "livekit"` or `"daily"` and the matching transport properties.
-- Raw REST currently documents exactly one of `agent_id` or `agent_image_url`.
+- JSON requests use exactly one of `agent_id` or `agent_image_url`; multipart requests can upload the image file directly.
+- The current endpoint schema exposes `model`, `aspect_ratio`, `simulcast`, and recording configuration. Validate the live schema before using volatile options.
 - Validate the full response shape and persist `session_id` against an authorized app-owned record.
 - Use an abortable request timeout and structured errors.
 - Implement explicit termination and lifecycle cleanup.
 
 ## Plugin/docs drift
 
-LiveKit and Pipecat integration docs expose `model` and `aspect_ratio`, while the downloadable raw REST OpenAPI can lag or omit plugin fields. Do not send plugin-only fields through direct REST unless the current endpoint schema or a tested API version supports them.
+Raw REST and framework plugins can expose different constructor fields or release on different schedules. Inspect the current endpoint schema for REST calls and the installed package signature for LiveKit/Pipecat code. Never assume an option supported by one surface is accepted by another.
 
 ## Meeting routing
 
@@ -44,6 +45,9 @@ try {
     body: JSON.stringify({
       agent_image_url: input.agentImageUrl,
       transport_type: "livekit",
+      model: "flash",
+      aspect_ratio: "1x1",
+      simulcast: true,
       idle_timeout: 600,
       properties: {
         livekit_url: input.livekitUrl,

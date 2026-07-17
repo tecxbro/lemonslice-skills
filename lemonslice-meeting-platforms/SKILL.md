@@ -38,6 +38,6 @@ Never expose `LEMONSLICE_API_KEY` or an unrestricted broadcast token to the brow
 
 See `references/livekit-plugin.md` and `references/rest-endpoints.md`.
 
-References:
-- https://lemonslice.com/docs/api-reference/join-third-party-meeting-platform.md
-- https://lemonslice.com/docs/api-reference/leave-third-party-meeting-platform.md
+Indexed official references:
+- https://lemonslice.com/docs/examples/livekit-zoom.md
+- https://lemonslice.com/docs/livekit/index.md
