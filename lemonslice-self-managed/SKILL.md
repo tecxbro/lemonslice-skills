@@ -15,24 +15,21 @@ Prefer framework plugins when the repository already uses LiveKit Agents or Pipe
 - Create with `POST /liveai/sessions`, not `/liveai/rooms`.
 - Keep `X-API-Key` in trusted server code.
 - Use `transport_type: "livekit"` or `"daily"` and the matching transport properties.
-- Raw JSON requests use exactly one of `agent_id` or `agent_image_url`.
-- Do not send `agent_id` and `agent_image_url` together.
-- The raw REST contract currently documents `agent_prompt`, `agent_idle_prompt`, `idle_timeout`, `response_done_timeout`, and LiveKit-only `simulcast`.
-- Model and aspect-ratio options may exist in framework plugins or account-specific surfaces. Do not copy plugin-only fields into raw REST unless the current OpenAPI explicitly exposes them.
-- Do not assume raw file upload support. Upload the image to an authorized URL first unless the current endpoint explicitly documents multipart input.
+- JSON requests use exactly one of `agent_id` or `agent_image_url`; reject both and reject neither.
+- The verified OpenAPI also declares `multipart/form-data` with `image` and `payload`. Do not assume file upload support when a future snapshot omits that media type.
+- The current raw contract documents `agent_prompt`, `agent_idle_prompt`, `idle_timeout`, `response_done_timeout`, `aspect_ratio`, `model`, and LiveKit-only `simulcast`.
+- Raw REST, LiveKit plugins, and Pipecat are separate surfaces. Never copy a field between them without checking the current OpenAPI or installed constructor signature.
 - Validate the full response shape and persist `session_id` against an authorized app-owned record.
 - Use an abortable request timeout and structured errors.
 - Implement explicit termination and lifecycle cleanup.
-
-## Plugin/docs drift
-
-Raw REST and framework plugins are separate contract surfaces. Inspect the current endpoint schema for REST calls and the installed package signature for LiveKit/Pipecat code. Never transfer a field between surfaces without verification.
 
 ## Meeting routing
 
 External Zoom, Google Meet, Microsoft Teams, or Webex requests route to `lemonslice-meeting-platforms`. That workflow currently requires a LiveKit-based self-managed session.
 
-## Example server request
+## Example JSON request
+
+Keep the baseline request minimal; add model or rendering options only when the current snapshot and account support them.
 
 ```ts
 const controller = new AbortController();
@@ -66,7 +63,7 @@ try {
   try {
     body = text ? JSON.parse(text) : null;
   } catch {
-    // Preserve the non-JSON body in trusted structured diagnostics.
+    // Preserve a redacted non-JSON body in trusted diagnostics.
   }
 
   if (
@@ -96,7 +93,7 @@ Handle:
 - `TIMED_OUT`
 - `FAILED`
 
-Do not treat `QUEUED` as immediate failure. Warm capacity may start in seconds, while a cold start can take substantially longer. Startup timeouts should be bounded but not unrealistically short; queued sessions may require a cold start of roughly 2.5 minutes.
+Do not treat `QUEUED` as immediate failure. Warm capacity may start in seconds, while a cold start can take substantially longer. Startup timeouts should be bounded but not unrealistically short; current status documentation says a cold start can take roughly 2.5 minutes.
 
 Never return raw API keys or unrestricted transport tokens. Run available checks and verify cleanup paths.
 
