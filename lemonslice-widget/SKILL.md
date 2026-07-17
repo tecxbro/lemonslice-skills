@@ -1,51 +1,74 @@
 ---
 name: lemonslice-widget
-description: Embed and control the LemonSlice web component in static sites, React, or Next.js. Covers safe lifecycle, method caveats, prompt engineering, metadata ownership, and SPA cleanup.
+description: Embed and control the LemonSlice web component in static sites, React, or Next.js. Covers use criteria, customization routing, consent, safe lifecycle, metadata ownership, and SPA cleanup.
 license: MIT
 ---
 
 # LemonSlice Widget
 
-Use the Widget for a prebuilt LemonSlice-managed experience. Do not add a self-managed/Hosted backend unless the user asks for app-owned metadata or authorization.
+## Use criteria
 
-## Integration
+Use the Widget when:
+
+- the user wants the fastest no-backend embed;
+- LemonSlice owns the agent pipeline and call experience;
+- deep application-owned lifecycle control is not required.
+
+Use Hosted or Self-Managed instead when the application needs custom authorization, transport ownership, provider selection, detailed state reconciliation, or a deeply custom call UI.
+
+## Customization routing
+
+- visual configuration → widget customization reference;
+- runtime methods/events → widget control reference;
+- user/tenant call association → call metadata reference;
+- Shopify, Wix, Squarespace, Next.js, or other platform work → platform embed reference;
+- spoken behavior → prompt-engineering reference.
+
+## Security and consent
 
 Load the documented widget script once, render the custom element with the configured agent ID, and never expose `LEMONSLICE_API_KEY`.
 
-In React/Next.js, wait for the custom element definition before calling methods:
+Do not auto-start microphone capture merely because the element mounted. Preserve the site's explicit user-consent interaction and the browser's permission flow.
+
+Do not treat microphone capability probes as authorization, consent, or reliable call state. Prefer documented events and handle method results defensively.
+
+## React and Next.js lifecycle
+
+Require:
+
+- client-only initialization;
+- the script loaded exactly once;
+- no duplicate custom-element registration;
+- no server rendering of `window`, `document`, `customElements`, media devices, or other browser-only APIs;
+- teardown/end-call handling on route change and component unmount;
+- removal of every event listener registered by the component;
+- protection against effects running twice in development;
+- no stale widget reference after navigation.
 
 ```tsx
 const widgetRef = useRef<HTMLElement | null>(null);
 
 useEffect(() => {
   let cancelled = false;
+  const listeners: Array<() => void> = [];
+
   customElements.whenDefined("lemonslice-widget").then(() => {
-    if (!cancelled) {
-      // widgetRef.current?.startCall?.()
-    }
+    if (cancelled) return;
+    // Register documented listeners here and store their removers.
   });
+
   return () => {
     cancelled = true;
-    // End/cleanup the call on route unmount when supported.
+    for (const remove of listeners) remove();
+    // End/cleanup the active call when the documented API supports it.
+    widgetRef.current = null;
   };
 }, []);
 ```
 
-Verify script deduplication, call teardown, and event-listener cleanup across SPA navigation.
-
-## Control caveat
-
-Current widget implementations may not make `isMicOn()` and `canTurnOnMic()` reliable state probes. Prefer documented widget events and treat method results defensively; do not build critical authorization or state machines around those probes alone.
-
 ## Prompt engineering
 
-Prompts should optimize spoken behavior:
-
-- write short, clear sections;
-- instruct spoken behavior, not visual UI behavior;
-- repeat critical constraints where needed;
-- normalize symbols, URLs, numbers, abbreviations, and punctuation for TTS;
-- test the actual voice output.
+Prompts should optimize spoken behavior: use short sections, distinguish speech from UI behavior, repeat critical constraints where useful, normalize symbols/URLs/numbers for TTS, and test the actual voice output.
 
 ## Metadata and authorization
 
@@ -57,9 +80,9 @@ When backend calls attach metadata or associate calls with users/tenants:
 - never trust browser-supplied ownership claims;
 - do not expose server credentials.
 
-Platform-specific embed guides live in `references/platform-embeds.md`; prompt guidance lives in `references/prompt-engineering.md`.
-
 References:
+- [`references/platform-embeds.md`](references/platform-embeds.md)
+- [`references/prompt-engineering.md`](references/prompt-engineering.md)
 - https://lemonslice.com/docs/widget/overview.md
 - https://lemonslice.com/docs/widget/control.md
 - https://lemonslice.com/docs/widget/prompt-engineering.md
