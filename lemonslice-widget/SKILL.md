@@ -6,6 +6,8 @@ license: MIT
 
 # LemonSlice Widget
 
+Follow [`../references/implementation-contract.md`](../references/implementation-contract.md).
+
 ## Use criteria
 
 Use the Widget when:
