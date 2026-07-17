@@ -1,6 +1,6 @@
 ---
 name: lemonslice-appearance-rendering
-description: Select LemonSlice model and aspect ratio, improve avatar source images, support non-human/cartoon characters, and implement GPU WebGL green-screen compositing. Route runtime appearance changes to lemonslice-control-actions.
+description: Select LemonSlice model and aspect ratio, improve avatar source images, support non-human characters, and implement GPU WebGL green-screen compositing. Route runtime appearance changes to lemonslice-control-actions.
 license: MIT
 ---
 
@@ -8,42 +8,52 @@ license: MIT
 
 Follow [`../references/implementation-contract.md`](../references/implementation-contract.md).
 
-## Model selection
+## Model and aspect-ratio selection
 
-- **Standard/default:** general production baseline.
-- **Lite:** lower resolution/cost for high-volume consumer use; current docs support only `2x3` and `1x1`.
-- **Flash:** lower-latency option; test the actual character for visual artifacts and motion quality before production.
-- **Pro:** high-resolution/immersive use when account access and installed SDK support are confirmed.
+Treat LiveKit Python, LiveKit Node, Pipecat, raw REST, and account access as separate surfaces. Use [`references/model-surface-matrix.md`](references/model-surface-matrix.md) and inspect installed signatures before editing.
 
-Inspect installed plugin signatures and account availability. Do not send model/aspect fields through raw REST unless the current schema supports them.
+- **Default/flagship:** general baseline when no verified model override is required.
+- **Lite:** lower-resource option where the selected surface and account support it.
+- **Flash:** latency-sensitive option; test the actual character for visual artifacts and motion quality.
+- **Pro:** high-resolution/immersive use only after account and installed-SDK verification.
 
-## Aspect ratio
-
-Choose from documented `2x3`, `9x16`, and `1x1`, subject to model limits. Reject Lite + `9x16`. Match the product layout rather than stretching a mismatched stream.
+Choose a documented aspect ratio that fits the product layout. Preserve the source and output aspect ratio rather than stretching a mismatched stream. Re-check model-specific constraints instead of hard-coding them across every surface.
 
 ## Source image
 
-- clear face and mouth;
-- tight, intentional framing;
-- minimal dead space;
-- adequate resolution and lighting;
-- test anthropomorphic, stylized, cartoon, and non-human characters;
-- for Lite, prefer stylized characters or tight photorealistic face crops.
+Follow [`references/avatar-image-tips.md`](references/avatar-image-tips.md). The current raw self-managed API recommends 368×560 and may center-crop mismatched inputs. Keep important facial and body details inside a conservative safe area and test the actual selected model/layout.
 
 ## Green screen
 
+Use green-screen compositing for:
+
+- landscape experiences;
+- floating avatars;
+- custom environments;
+- product UI overlays;
+- backgrounds that should remain controlled by the client.
+
 Use a solid lime-green source background and sample the **actual source-image green**. Implement chroma key in a WebGL fragment shader, not a CPU per-pixel canvas loop.
 
-Tune:
+Tune similarity/threshold, smoothness, spill removal, edge feathering, and source-to-output scaling.
 
-- similarity/threshold;
-- smoothness;
-- spill removal;
-- edge feathering;
-- source-to-output scaling.
+Implementation requirements:
 
-Keep the WebRTC video track as the source texture and composite over the desired background. Test frame rate, GPU use, edges, hair, motion, and Safari/Chrome compatibility.
+- preserve aspect ratio;
+- avoid CPU readback such as `getImageData()` on every frame;
+- keep the WebRTC video track as the source texture;
+- stop the render loop when the call ends or component unmounts;
+- release WebGL textures, framebuffers, programs, canvases, and video references;
+- respect device-pixel ratio without rendering unnecessarily large buffers;
+- respond to resize/layout changes without stretching;
+- provide a non-composited fallback when WebGL is unavailable or context creation fails.
 
-Runtime image changes belong to `lemonslice-control-actions`.
+Test frame rate, GPU use, edge quality, hair/fur, fast motion, green spill, Safari/Chrome behavior, and cleanup after repeated calls.
 
-See references for model constraints, image tips, and shader guidance.
+Runtime image changes belong to `lemonslice-control-actions` and are asynchronous; do not confuse source-image selection with a completed runtime replacement.
+
+References:
+- [`references/model-surface-matrix.md`](references/model-surface-matrix.md)
+- [`references/avatar-image-tips.md`](references/avatar-image-tips.md)
+- [`references/green-screen.md`](references/green-screen.md)
+- https://lemonslice.com/docs/reference/green-screen.md
