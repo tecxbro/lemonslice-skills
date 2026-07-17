@@ -58,6 +58,8 @@ Use `lemonslice-integration-choice` only for ambiguous requests. When the user a
 5. Record conflicts instead of copying a field across surfaces.
 6. Verify account-gated features such as models, actions, recording, high resolution, long calls, concurrency, or special deployment modes.
 
+A single successful OpenAPI request is not proof that all public CDN locations are serving the same contract. The drift workflow probes repeatedly, records response metadata and digests, and reports source inconsistency instead of selecting a conflicting version automatically.
+
 The product overview may reference integrations such as Agora, but this repository does not invent an Agora raw REST contract. Agora requests require current official integration documentation or an inspectable installed SDK.
 
 ## What these skills guarantee
@@ -81,16 +83,18 @@ Last audited against:
 - LemonSlice `llms.txt`: **2026-07-17**
 - LemonSlice OpenAPI and rendered endpoint docs: **2026-07-17**
 
-LemonSlice documentation, OpenAPI, rendered pages, account entitlements, and published SDK versions can temporarily differ. Implementation skills inspect the exact surface before using volatile options.
+LemonSlice documentation, OpenAPI, rendered pages, CDN edges, account entitlements, and published SDK versions can temporarily differ. Implementation skills inspect the exact active surface before using volatile options.
 
 ## Maintenance
 
-- `lemonslice-api-reference/scripts/sync_openapi.py` preserves alternatives, media types, enums, security metadata, and response codes.
-- `lemonslice-api-reference/tests/` validates normalization offline.
-- `scripts/validate_skills.py` validates skill structure and local references.
-- `.github/workflows/docs-drift.yml` runs live drift checks and uploads the normalized current contract.
-- `.github/workflows/evals.yml` validates skills, eval fixtures, normalizer tests, and documentation links without requiring live LemonSlice API access.
-- Exact generated/volatile contracts live in reference files; `SKILL.md` files focus on routing and implementation workflow.
+- `lemonslice-api-reference/scripts/sync_openapi.py` probes source stability and tracks parameters, request media types, request schemas, response media types, response schemas, enums, constraints, nullability, security, and endpoints.
+- `lemonslice-api-reference/tests/` validates normalization offline against composition fixtures and a sanitized LemonSlice-shaped OpenAPI fixture.
+- `scripts/validate_skills.py` validates skill structure and local links across repository Markdown.
+- `scripts/format_repository_data.py` keeps generated and evaluation JSON reviewable.
+- `.github/workflows/docs-drift.yml` downloads each live source once after repeated probes, then reuses that saved evidence for normalization and comparison.
+- `.github/workflows/evals.yml` performs **static validation only**: skill structure, evaluation definitions, normalizer tests, documentation links, and JSON formatting.
+- `.github/workflows/behavioral-evals.yml` prepares fixtures or scores results produced by an external agent executor. It does not claim to run an agent automatically.
+- Exact generated contracts live in reference files; human interpretation and cross-source conflicts live in Markdown references.
 
 ## Evaluation
 
@@ -99,6 +103,8 @@ python evals/run_evals.py --validate
 python evals/run_evals.py --results-dir /path/to/agent-results
 ```
 
-The harness compares materialized results against original fixtures, verifies selected skills, evaluates per-file assertions, rejects unrelated edits, and can run explicitly configured validation commands in a sandboxed test environment.
+Static validation confirms that the 31 behavioral cases, fixtures, regexes, file rules, and response assertions are well formed. It does **not** prove that an agent passed those cases.
+
+Behavioral scoring compares externally materialized agent results against original fixtures, verifies selected skills, evaluates user-facing responses, enforces required/allowed/forbidden file patterns, and scores command results produced by an externally isolated environment. The scorer itself never executes agent-modified project code. See [`evals/README.md`](evals/README.md).
 
 License: MIT.

@@ -1,6 +1,6 @@
 ---
 name: lemonslice-control-actions
-description: Add trusted LemonSlice runtime controls for self-managed REST, LiveKit tool calls, or Hosted Daily messages. Covers auth conflict handling, readiness gates, image and prompt updates, idle reset, provisioned actions, and termination.
+description: Add trusted LemonSlice runtime controls for self-managed REST, LiveKit tool calls, or Hosted Daily messages. Covers auth conflict handling, readiness gates, image and prompt updates, provisioned actions, optional idle reset, and termination.
 license: MIT
 ---
 
@@ -18,16 +18,17 @@ Controls require **pipeline readiness** (`bot_ready`). User-facing “avatar vis
 
 `POST /liveai/sessions/{session_id}/control`
 
-Keep it in trusted server code. Current documentation conflicts on control authentication; follow `lemonslice-api-reference` and preserve known-working behavior.
+Keep it in trusted server code. Current public sources conflict on control authentication, response codes, and optional idle-reset support; follow `lemonslice-api-reference` and preserve known-working behavior.
 
-The verified raw control discriminator currently includes:
+The stable core event set observed across public contracts is:
 
 - `terminate`
 - `update-image`
 - `update-agent-prompt`
 - `update-idle-prompt`
 - `pose-trigger`
-- `reset-idle-timeout`
+
+`reset-idle-timeout` has appeared in one public OpenAPI representation and is absent from another. Include it only when the stable captured contract or installed integration explicitly supports it.
 
 Use exact kebab-case event names. Do not invent snake-case aliases such as `update_image`, `update_agent_prompt`, or `reset_idle_timeout`.
 
@@ -46,7 +47,6 @@ type AllowedAvatarAction = typeof ALLOWED_ACTIONS extends Set<infer T>
 
 type AvatarControl =
   | { event: "terminate" }
-  | { event: "reset-idle-timeout" }
   | { event: "update-image"; image_url: string }
   | { event: "update-agent-prompt"; agent_prompt: string }
   | { event: "update-idle-prompt"; idle_prompt: string }
@@ -74,6 +74,8 @@ async function controlAvatar(
 }
 ```
 
+Keep optional, source-verified events in a separate adapter extension instead of weakening the core union.
+
 ## Update-image behavior
 
 `update-image` resets the avatar model. Audio currently playing may be cut off, so invoke it while the avatar is silent when possible.
@@ -88,7 +90,7 @@ Outgoing app messages use `event`, for example `chat-msg` and `force-end`. Incom
 
 ## Safety and cleanup
 
-Validate URLs and prompts, rate-limit controls, avoid overlapping actions, log session IDs but not credentials, and terminate on explicit hangup. Report control-authentication conflicts rather than claiming one universal rule.
+Validate URLs and prompts, rate-limit controls, avoid overlapping actions, log session IDs but not credentials, and terminate on explicit hangup. Report source/authentication conflicts rather than claiming one universal rule.
 
 References:
 - https://lemonslice.com/docs/api-reference/control-self-managed-session.md

@@ -2,7 +2,7 @@
   "name": "lemonslice-new-project-fixture",
   "private": true,
   "scripts": {
-    "test": "node -e \"process.exit(0)\"",
-    "typecheck": "node -e \"process.exit(0)\""
+    "test": "node --test tests/quickstart.test.mjs",
+    "typecheck": "node scripts/typecheck.mjs"
   }
 }

@@ -1,1 +1,3651 @@
-{"audited_at":"2026-07-17","generated_from":"https://lemonslice.com/docs/openapi.json","notes":["Raw REST and framework plugin contracts are tracked separately.","The current raw SessionInput uses exactly one of agent_id or agent_image_url for application/json requests.","The current OpenAPI also declares multipart/form-data image upload and raw model/aspect_ratio fields; do not infer these fields when a future snapshot removes them.","The control OpenAPI declares security: []; rendered control docs omit X-API-Key and disagree on response codes, so preserve the conflict."],"operations":{"GET /liveai/rooms":{"request":{"content_types":[],"media_types":{}},"responses":["200","400","401","500"],"security":["X-API-Key"]},"GET /liveai/rooms/{session_id}":{"request":{"content_types":[],"media_types":{}},"responses":["200","401","403","404","500"],"security":["X-API-Key"]},"GET /liveai/sessions":{"request":{"content_types":[],"media_types":{}},"responses":["200","400","401","500"],"security":["X-API-Key"]},"GET /liveai/sessions/{session_id}":{"request":{"content_types":[],"media_types":{}},"responses":["200","401","403","404","500"],"security":["X-API-Key"]},"POST /liveai/rooms":{"request":{"content_types":["application/json"],"media_types":{"application/json":{"required":["agent_id"]}},"required":["agent_id"]},"responses":["201","400","401","402","404","500"],"security":["X-API-Key"]},"POST /liveai/sessions":{"request":{"content_types":["application/json","multipart/form-data"],"enums":{"aspect_ratio":["1x1","2x3","9x16"],"model":[null,"flash","lite","pro"],"transport_type":["daily","livekit"]},"media_types":{"application/json":{"enums":{"aspect_ratio":["1x1","2x3","9x16"],"model":[null,"flash","lite","pro"],"transport_type":["daily","livekit"]},"one_of":[{"forbidden":["agent_id"],"required":["agent_image_url"],"title":"By agent_image_url"},{"forbidden":["agent_image_url"],"required":["agent_id"],"title":"By agent_id"}],"required":["transport_type"]},"multipart/form-data":{"enums":{"payload.aspect_ratio":["1x1","2x3","9x16"],"payload.model":[null,"flash","lite","pro"],"payload.transport_type":["daily","livekit"]},"required":["image","payload"]}},"one_of":[{"forbidden":["agent_id"],"required":["agent_image_url"],"title":"By agent_image_url"},{"forbidden":["agent_image_url"],"required":["agent_id"],"title":"By agent_id"}],"required":["transport_type"]},"responses":["201","400","401","402","403","404","500"],"security":["X-API-Key"]},"POST /liveai/sessions/{session_id}/control":{"request":{"content_types":["application/json"],"discriminator":{"mapping":{"pose-trigger":"#/components/schemas/PoseTriggerEvent","reset-idle-timeout":"#/components/schemas/ResetIdleTimeoutEvent","terminate":"#/components/schemas/TerminateEvent","update-agent-prompt":"#/components/schemas/UpdateAgentPromptEvent","update-idle-prompt":"#/components/schemas/UpdateIdlePromptEvent","update-image":"#/components/schemas/UpdateImageEvent"},"property_name":"event"},"media_types":{"application/json":{"discriminator":{"mapping":{"pose-trigger":"#/components/schemas/PoseTriggerEvent","reset-idle-timeout":"#/components/schemas/ResetIdleTimeoutEvent","terminate":"#/components/schemas/TerminateEvent","update-agent-prompt":"#/components/schemas/UpdateAgentPromptEvent","update-idle-prompt":"#/components/schemas/UpdateIdlePromptEvent","update-image":"#/components/schemas/UpdateImageEvent"},"property_name":"event"},"one_of":[{"event":"terminate","required":["event"],"title":"Terminate"},{"event":"update-image","required":["event"],"title":"Update Image"},{"event":"update-agent-prompt","required":["agent_prompt","event"],"title":"Update Agent Prompt"},{"event":"update-idle-prompt","required":["event","idle_prompt"],"title":"Update Idle Prompt"},{"event":"pose-trigger","required":["event","pose_trigger"],"title":"Action Trigger"},{"event":"reset-idle-timeout","required":["event"],"title":"Reset Idle Timeout"}]}},"one_of":[{"event":"terminate","required":["event"],"title":"Terminate"},{"event":"update-image","required":["event"],"title":"Update Image"},{"event":"update-agent-prompt","required":["agent_prompt","event"],"title":"Update Agent Prompt"},{"event":"update-idle-prompt","required":["event","idle_prompt"],"title":"Update Idle Prompt"},{"event":"pose-trigger","required":["event","pose_trigger"],"title":"Action Trigger"},{"event":"reset-idle-timeout","required":["event"],"title":"Reset Idle Timeout"}]},"responses":["200","400","404","413","500"],"security":[]},"POST /liveai/sessions/{session_id}/join-meeting":{"request":{"content_types":["application/json"],"media_types":{"application/json":{"required":["broadcast_token","livekit_url","meeting_url"]}},"required":["broadcast_token","livekit_url","meeting_url"]},"responses":["200","400","401","500","502","503","504"],"security":["X-API-Key"]},"POST /liveai/sessions/{session_id}/leave-meeting":{"request":{"content_types":["application/json"],"media_types":{"application/json":{"required":["meeting_bot_id"]}},"required":["meeting_bot_id"]},"responses":["200","400","401","500","502","503","504"],"security":["X-API-Key"]}},"paths":["/liveai/rooms","/liveai/rooms/{session_id}","/liveai/sessions","/liveai/sessions/{session_id}","/liveai/sessions/{session_id}/control","/liveai/sessions/{session_id}/join-meeting","/liveai/sessions/{session_id}/leave-meeting"]}
+{
+  "audited_at": "2026-07-17",
+  "operations": {
+    "GET /liveai/rooms": {
+      "parameters": {
+        "path": {},
+        "query": {
+          "limit": {
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "types": [
+                "integer"
+              ]
+            }
+          },
+          "page": {
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "types": [
+                "integer"
+              ]
+            }
+          }
+        }
+      },
+      "request": {
+        "body_required": false,
+        "content_types": [],
+        "media_types": {}
+      },
+      "responses": {
+        "200": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "pagination": {
+                    "properties": {
+                      "has_more": {
+                        "types": [
+                          "boolean"
+                        ]
+                      },
+                      "limit": {
+                        "types": [
+                          "integer"
+                        ]
+                      },
+                      "page": {
+                        "types": [
+                          "integer"
+                        ]
+                      },
+                      "total": {
+                        "types": [
+                          "integer"
+                        ]
+                      },
+                      "total_pages": {
+                        "types": [
+                          "integer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "has_more",
+                      "limit",
+                      "page",
+                      "total",
+                      "total_pages"
+                    ],
+                    "types": [
+                      "object"
+                    ]
+                  },
+                  "rooms": {
+                    "items": {
+                      "properties": {
+                        "agent_id": {
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "created_at": {
+                          "format": "date-time",
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "credits_used": {
+                          "nullable": true,
+                          "types": [
+                            "null",
+                            "number"
+                          ]
+                        },
+                        "session_id": {
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "session_status": {
+                          "types": [
+                            "string"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "agent_id",
+                        "created_at",
+                        "session_id",
+                        "session_status"
+                      ],
+                      "types": [
+                        "object"
+                      ]
+                    },
+                    "types": [
+                      "array"
+                    ]
+                  }
+                },
+                "required": [
+                  "pagination",
+                  "rooms"
+                ],
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "pagination": {
+                "properties": {
+                  "has_more": {
+                    "types": [
+                      "boolean"
+                    ]
+                  },
+                  "limit": {
+                    "types": [
+                      "integer"
+                    ]
+                  },
+                  "page": {
+                    "types": [
+                      "integer"
+                    ]
+                  },
+                  "total": {
+                    "types": [
+                      "integer"
+                    ]
+                  },
+                  "total_pages": {
+                    "types": [
+                      "integer"
+                    ]
+                  }
+                },
+                "required": [
+                  "has_more",
+                  "limit",
+                  "page",
+                  "total",
+                  "total_pages"
+                ],
+                "types": [
+                  "object"
+                ]
+              },
+              "rooms": {
+                "items": {
+                  "properties": {
+                    "agent_id": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "created_at": {
+                      "format": "date-time",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "credits_used": {
+                      "nullable": true,
+                      "types": [
+                        "null",
+                        "number"
+                      ]
+                    },
+                    "session_id": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "session_status": {
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "agent_id",
+                    "created_at",
+                    "session_id",
+                    "session_status"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                },
+                "types": [
+                  "array"
+                ]
+              }
+            },
+            "required": [
+              "pagination",
+              "rooms"
+            ],
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "400": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "401": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": [
+        "X-API-Key"
+      ]
+    },
+    "GET /liveai/rooms/{session_id}": {
+      "parameters": {
+        "path": {
+          "session_id": {
+            "required": true,
+            "schema": {
+              "types": [
+                "string"
+              ]
+            }
+          }
+        },
+        "query": {}
+      },
+      "request": {
+        "body_required": false,
+        "content_types": [],
+        "media_types": {}
+      },
+      "responses": {
+        "200": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "cost": {
+                    "types": [
+                      "number"
+                    ]
+                  },
+                  "llm_ended_at": {
+                    "types": [
+                      "integer"
+                    ]
+                  },
+                  "llm_ended_reason": {
+                    "types": [
+                      "string"
+                    ]
+                  },
+                  "llm_started_at": {
+                    "types": [
+                      "integer"
+                    ]
+                  },
+                  "messages": {
+                    "items": {
+                      "properties": {
+                        "message": {
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "role": {
+                          "enum": [
+                            "agent",
+                            "user"
+                          ],
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "seconds_from_start": {
+                          "types": [
+                            "integer"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "role",
+                        "seconds_from_start"
+                      ],
+                      "types": [
+                        "object"
+                      ]
+                    },
+                    "types": [
+                      "array"
+                    ]
+                  },
+                  "session_status": {
+                    "enum": [
+                      "ACTIVE",
+                      "COMPLETED",
+                      "FAILED",
+                      "QUEUED",
+                      "TIMED_OUT"
+                    ],
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "session_status"
+                ],
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "cost": {
+                "types": [
+                  "number"
+                ]
+              },
+              "llm_ended_at": {
+                "types": [
+                  "integer"
+                ]
+              },
+              "llm_ended_reason": {
+                "types": [
+                  "string"
+                ]
+              },
+              "llm_started_at": {
+                "types": [
+                  "integer"
+                ]
+              },
+              "messages": {
+                "items": {
+                  "properties": {
+                    "message": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "role": {
+                      "enum": [
+                        "agent",
+                        "user"
+                      ],
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "seconds_from_start": {
+                      "types": [
+                        "integer"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "role",
+                    "seconds_from_start"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                },
+                "types": [
+                  "array"
+                ]
+              },
+              "session_status": {
+                "enum": [
+                  "ACTIVE",
+                  "COMPLETED",
+                  "FAILED",
+                  "QUEUED",
+                  "TIMED_OUT"
+                ],
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "session_status"
+            ],
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "401": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "403": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "404": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": [
+        "X-API-Key"
+      ]
+    },
+    "GET /liveai/sessions": {
+      "parameters": {
+        "path": {},
+        "query": {
+          "limit": {
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "types": [
+                "integer"
+              ]
+            }
+          },
+          "page": {
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "types": [
+                "integer"
+              ]
+            }
+          }
+        }
+      },
+      "request": {
+        "body_required": false,
+        "content_types": [],
+        "media_types": {}
+      },
+      "responses": {
+        "200": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "pagination": {
+                    "properties": {
+                      "has_more": {
+                        "types": [
+                          "boolean"
+                        ]
+                      },
+                      "limit": {
+                        "types": [
+                          "integer"
+                        ]
+                      },
+                      "page": {
+                        "types": [
+                          "integer"
+                        ]
+                      },
+                      "total": {
+                        "types": [
+                          "integer"
+                        ]
+                      },
+                      "total_pages": {
+                        "types": [
+                          "integer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "has_more",
+                      "limit",
+                      "page",
+                      "total",
+                      "total_pages"
+                    ],
+                    "types": [
+                      "object"
+                    ]
+                  },
+                  "sessions": {
+                    "items": {
+                      "properties": {
+                        "created_at": {
+                          "format": "date-time",
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "credits_used": {
+                          "nullable": true,
+                          "types": [
+                            "null",
+                            "number"
+                          ]
+                        },
+                        "provider": {
+                          "nullable": true,
+                          "types": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "session_id": {
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "session_status": {
+                          "types": [
+                            "string"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "created_at",
+                        "session_id",
+                        "session_status"
+                      ],
+                      "types": [
+                        "object"
+                      ]
+                    },
+                    "types": [
+                      "array"
+                    ]
+                  }
+                },
+                "required": [
+                  "pagination",
+                  "sessions"
+                ],
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "pagination": {
+                "properties": {
+                  "has_more": {
+                    "types": [
+                      "boolean"
+                    ]
+                  },
+                  "limit": {
+                    "types": [
+                      "integer"
+                    ]
+                  },
+                  "page": {
+                    "types": [
+                      "integer"
+                    ]
+                  },
+                  "total": {
+                    "types": [
+                      "integer"
+                    ]
+                  },
+                  "total_pages": {
+                    "types": [
+                      "integer"
+                    ]
+                  }
+                },
+                "required": [
+                  "has_more",
+                  "limit",
+                  "page",
+                  "total",
+                  "total_pages"
+                ],
+                "types": [
+                  "object"
+                ]
+              },
+              "sessions": {
+                "items": {
+                  "properties": {
+                    "created_at": {
+                      "format": "date-time",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "credits_used": {
+                      "nullable": true,
+                      "types": [
+                        "null",
+                        "number"
+                      ]
+                    },
+                    "provider": {
+                      "nullable": true,
+                      "types": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "session_id": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "session_status": {
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "created_at",
+                    "session_id",
+                    "session_status"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                },
+                "types": [
+                  "array"
+                ]
+              }
+            },
+            "required": [
+              "pagination",
+              "sessions"
+            ],
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "400": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "401": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": [
+        "X-API-Key"
+      ]
+    },
+    "GET /liveai/sessions/{session_id}": {
+      "parameters": {
+        "path": {
+          "session_id": {
+            "required": true,
+            "schema": {
+              "types": [
+                "string"
+              ]
+            }
+          }
+        },
+        "query": {}
+      },
+      "request": {
+        "body_required": false,
+        "content_types": [],
+        "media_types": {}
+      },
+      "responses": {
+        "200": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "cost": {
+                    "types": [
+                      "number"
+                    ]
+                  },
+                  "session_status": {
+                    "enum": [
+                      "ACTIVE",
+                      "COMPLETED",
+                      "FAILED",
+                      "QUEUED",
+                      "TIMED_OUT"
+                    ],
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "session_status"
+                ],
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "cost": {
+                "types": [
+                  "number"
+                ]
+              },
+              "session_status": {
+                "enum": [
+                  "ACTIVE",
+                  "COMPLETED",
+                  "FAILED",
+                  "QUEUED",
+                  "TIMED_OUT"
+                ],
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "session_status"
+            ],
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "401": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "403": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "404": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": [
+        "X-API-Key"
+      ]
+    },
+    "POST /liveai/rooms": {
+      "parameters": {
+        "path": {},
+        "query": {}
+      },
+      "request": {
+        "body_required": true,
+        "content_types": [
+          "application/json"
+        ],
+        "media_types": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "agent_id": {
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "agent_id"
+              ],
+              "types": [
+                "object"
+              ]
+            }
+          }
+        },
+        "schema": {
+          "properties": {
+            "agent_id": {
+              "types": [
+                "string"
+              ]
+            }
+          },
+          "required": [
+            "agent_id"
+          ],
+          "types": [
+            "object"
+          ]
+        }
+      },
+      "responses": {
+        "201": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "image_url": {
+                    "format": "uri",
+                    "types": [
+                      "string"
+                    ]
+                  },
+                  "room_url": {
+                    "format": "uri",
+                    "types": [
+                      "string"
+                    ]
+                  },
+                  "session_id": {
+                    "format": "string",
+                    "types": [
+                      "string"
+                    ]
+                  },
+                  "token": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "image_url",
+                  "room_url",
+                  "session_id",
+                  "token"
+                ],
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "image_url": {
+                "format": "uri",
+                "types": [
+                  "string"
+                ]
+              },
+              "room_url": {
+                "format": "uri",
+                "types": [
+                  "string"
+                ]
+              },
+              "session_id": {
+                "format": "string",
+                "types": [
+                  "string"
+                ]
+              },
+              "token": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "image_url",
+              "room_url",
+              "session_id",
+              "token"
+            ],
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "400": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "401": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "402": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "404": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": [
+        "X-API-Key"
+      ]
+    },
+    "POST /liveai/sessions": {
+      "parameters": {
+        "path": {},
+        "query": {}
+      },
+      "request": {
+        "body_required": true,
+        "content_types": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "media_types": {
+          "application/json": {
+            "schema": {
+              "one_of": [
+                {
+                  "forbidden": [
+                    "agent_id"
+                  ],
+                  "properties": {
+                    "agent_image_url": {
+                      "format": "uri",
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "agent_image_url"
+                  ],
+                  "title": "By agent_image_url",
+                  "types": [
+                    "object"
+                  ]
+                },
+                {
+                  "forbidden": [
+                    "agent_image_url"
+                  ],
+                  "properties": {
+                    "agent_id": {
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "agent_id"
+                  ],
+                  "title": "By agent_id",
+                  "types": [
+                    "object"
+                  ]
+                }
+              ],
+              "properties": {
+                "agent_idle_prompt": {
+                  "default": "a serious person",
+                  "types": [
+                    "string"
+                  ]
+                },
+                "agent_prompt": {
+                  "default": "a person talking",
+                  "types": [
+                    "string"
+                  ]
+                },
+                "aspect_ratio": {
+                  "default": "2x3",
+                  "enum": [
+                    "1x1",
+                    "2x3",
+                    "9x16"
+                  ],
+                  "types": [
+                    "string"
+                  ]
+                },
+                "idle_timeout": {
+                  "default": 60,
+                  "types": [
+                    "integer"
+                  ]
+                },
+                "model": {
+                  "default": null,
+                  "enum": [
+                    null,
+                    "flash",
+                    "lite",
+                    "pro"
+                  ],
+                  "nullable": true,
+                  "types": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "properties": {
+                  "one_of": [
+                    {
+                      "additional_properties": true,
+                      "properties": {
+                        "livekit_token": {
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "livekit_url": {
+                          "format": "uri",
+                          "types": [
+                            "string"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "livekit_token",
+                        "livekit_url"
+                      ],
+                      "title": "LiveKit",
+                      "types": [
+                        "object"
+                      ]
+                    },
+                    {
+                      "additional_properties": true,
+                      "dependent_required": {
+                        "enable_recording": [
+                          "recordings_bucket"
+                        ]
+                      },
+                      "properties": {
+                        "daily_room_url": {
+                          "format": "uri",
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "daily_token": {
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "enable_recording": {
+                          "enum": [
+                            "cloud",
+                            "cloud-audio-only",
+                            "local",
+                            "raw-tracks"
+                          ],
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "recordings_bucket": {
+                          "properties": {
+                            "allow_api_access": {
+                              "types": [
+                                "boolean"
+                              ]
+                            },
+                            "assume_role_arn": {
+                              "types": [
+                                "string"
+                              ]
+                            },
+                            "bucket_name": {
+                              "types": [
+                                "string"
+                              ]
+                            },
+                            "bucket_region": {
+                              "types": [
+                                "string"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "assume_role_arn",
+                            "bucket_name",
+                            "bucket_region"
+                          ],
+                          "types": [
+                            "object"
+                          ]
+                        }
+                      },
+                      "title": "Daily",
+                      "types": [
+                        "object"
+                      ]
+                    }
+                  ]
+                },
+                "response_done_timeout": {
+                  "default": null,
+                  "nullable": true,
+                  "types": [
+                    "null",
+                    "number"
+                  ]
+                },
+                "simulcast": {
+                  "default": false,
+                  "types": [
+                    "boolean"
+                  ]
+                },
+                "transport_type": {
+                  "enum": [
+                    "daily",
+                    "livekit"
+                  ],
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "transport_type"
+              ],
+              "types": [
+                "object"
+              ],
+              "unevaluated_properties": false
+            }
+          },
+          "multipart/form-data": {
+            "schema": {
+              "properties": {
+                "image": {
+                  "format": "binary",
+                  "types": [
+                    "string"
+                  ]
+                },
+                "payload": {
+                  "additional_properties": false,
+                  "properties": {
+                    "agent_idle_prompt": {
+                      "default": "a serious person",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "agent_prompt": {
+                      "default": "a person talking",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "aspect_ratio": {
+                      "default": "2x3",
+                      "enum": [
+                        "1x1",
+                        "2x3",
+                        "9x16"
+                      ],
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "idle_timeout": {
+                      "default": 60,
+                      "types": [
+                        "integer"
+                      ]
+                    },
+                    "model": {
+                      "default": null,
+                      "enum": [
+                        null,
+                        "flash",
+                        "lite",
+                        "pro"
+                      ],
+                      "nullable": true,
+                      "types": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "properties": {
+                      "one_of": [
+                        {
+                          "additional_properties": true,
+                          "properties": {
+                            "livekit_token": {
+                              "types": [
+                                "string"
+                              ]
+                            },
+                            "livekit_url": {
+                              "format": "uri",
+                              "types": [
+                                "string"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "livekit_token",
+                            "livekit_url"
+                          ],
+                          "title": "LiveKit",
+                          "types": [
+                            "object"
+                          ]
+                        },
+                        {
+                          "additional_properties": true,
+                          "dependent_required": {
+                            "enable_recording": [
+                              "recordings_bucket"
+                            ]
+                          },
+                          "properties": {
+                            "daily_room_url": {
+                              "format": "uri",
+                              "types": [
+                                "string"
+                              ]
+                            },
+                            "daily_token": {
+                              "types": [
+                                "string"
+                              ]
+                            },
+                            "enable_recording": {
+                              "enum": [
+                                "cloud",
+                                "cloud-audio-only",
+                                "local",
+                                "raw-tracks"
+                              ],
+                              "types": [
+                                "string"
+                              ]
+                            },
+                            "recordings_bucket": {
+                              "properties": {
+                                "allow_api_access": {
+                                  "types": [
+                                    "boolean"
+                                  ]
+                                },
+                                "assume_role_arn": {
+                                  "types": [
+                                    "string"
+                                  ]
+                                },
+                                "bucket_name": {
+                                  "types": [
+                                    "string"
+                                  ]
+                                },
+                                "bucket_region": {
+                                  "types": [
+                                    "string"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "assume_role_arn",
+                                "bucket_name",
+                                "bucket_region"
+                              ],
+                              "types": [
+                                "object"
+                              ]
+                            }
+                          },
+                          "title": "Daily",
+                          "types": [
+                            "object"
+                          ]
+                        }
+                      ]
+                    },
+                    "response_done_timeout": {
+                      "default": null,
+                      "nullable": true,
+                      "types": [
+                        "null",
+                        "number"
+                      ]
+                    },
+                    "simulcast": {
+                      "default": false,
+                      "types": [
+                        "boolean"
+                      ]
+                    },
+                    "transport_type": {
+                      "enum": [
+                        "daily",
+                        "livekit"
+                      ],
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "transport_type"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                }
+              },
+              "required": [
+                "image",
+                "payload"
+              ],
+              "types": [
+                "object"
+              ]
+            }
+          }
+        },
+        "schema": {
+          "one_of": [
+            {
+              "forbidden": [
+                "agent_id"
+              ],
+              "properties": {
+                "agent_image_url": {
+                  "format": "uri",
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "agent_image_url"
+              ],
+              "title": "By agent_image_url",
+              "types": [
+                "object"
+              ]
+            },
+            {
+              "forbidden": [
+                "agent_image_url"
+              ],
+              "properties": {
+                "agent_id": {
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "agent_id"
+              ],
+              "title": "By agent_id",
+              "types": [
+                "object"
+              ]
+            }
+          ],
+          "properties": {
+            "agent_idle_prompt": {
+              "default": "a serious person",
+              "types": [
+                "string"
+              ]
+            },
+            "agent_prompt": {
+              "default": "a person talking",
+              "types": [
+                "string"
+              ]
+            },
+            "aspect_ratio": {
+              "default": "2x3",
+              "enum": [
+                "1x1",
+                "2x3",
+                "9x16"
+              ],
+              "types": [
+                "string"
+              ]
+            },
+            "idle_timeout": {
+              "default": 60,
+              "types": [
+                "integer"
+              ]
+            },
+            "model": {
+              "default": null,
+              "enum": [
+                null,
+                "flash",
+                "lite",
+                "pro"
+              ],
+              "nullable": true,
+              "types": [
+                "null",
+                "string"
+              ]
+            },
+            "properties": {
+              "one_of": [
+                {
+                  "additional_properties": true,
+                  "properties": {
+                    "livekit_token": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "livekit_url": {
+                      "format": "uri",
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "livekit_token",
+                    "livekit_url"
+                  ],
+                  "title": "LiveKit",
+                  "types": [
+                    "object"
+                  ]
+                },
+                {
+                  "additional_properties": true,
+                  "dependent_required": {
+                    "enable_recording": [
+                      "recordings_bucket"
+                    ]
+                  },
+                  "properties": {
+                    "daily_room_url": {
+                      "format": "uri",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "daily_token": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "enable_recording": {
+                      "enum": [
+                        "cloud",
+                        "cloud-audio-only",
+                        "local",
+                        "raw-tracks"
+                      ],
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "recordings_bucket": {
+                      "properties": {
+                        "allow_api_access": {
+                          "types": [
+                            "boolean"
+                          ]
+                        },
+                        "assume_role_arn": {
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "bucket_name": {
+                          "types": [
+                            "string"
+                          ]
+                        },
+                        "bucket_region": {
+                          "types": [
+                            "string"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "assume_role_arn",
+                        "bucket_name",
+                        "bucket_region"
+                      ],
+                      "types": [
+                        "object"
+                      ]
+                    }
+                  },
+                  "title": "Daily",
+                  "types": [
+                    "object"
+                  ]
+                }
+              ]
+            },
+            "response_done_timeout": {
+              "default": null,
+              "nullable": true,
+              "types": [
+                "null",
+                "number"
+              ]
+            },
+            "simulcast": {
+              "default": false,
+              "types": [
+                "boolean"
+              ]
+            },
+            "transport_type": {
+              "enum": [
+                "daily",
+                "livekit"
+              ],
+              "types": [
+                "string"
+              ]
+            }
+          },
+          "required": [
+            "transport_type"
+          ],
+          "types": [
+            "object"
+          ],
+          "unevaluated_properties": false
+        }
+      },
+      "responses": {
+        "201": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "session_id": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "session_id"
+                ],
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "session_id": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "session_id"
+            ],
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "400": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "401": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "402": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "403": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "404": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": [
+        "X-API-Key"
+      ]
+    },
+    "POST /liveai/sessions/{session_id}/control": {
+      "parameters": {
+        "path": {
+          "session_id": {
+            "required": true,
+            "schema": {
+              "types": [
+                "string"
+              ]
+            }
+          }
+        },
+        "query": {}
+      },
+      "request": {
+        "body_required": true,
+        "content_types": [
+          "application/json"
+        ],
+        "media_types": {
+          "application/json": {
+            "schema": {
+              "discriminator": {
+                "mapping": {
+                  "pose-trigger": "#/components/schemas/PoseTriggerEvent",
+                  "reset-idle-timeout": "#/components/schemas/ResetIdleTimeoutEvent",
+                  "terminate": "#/components/schemas/TerminateEvent",
+                  "update-agent-prompt": "#/components/schemas/UpdateAgentPromptEvent",
+                  "update-idle-prompt": "#/components/schemas/UpdateIdlePromptEvent",
+                  "update-image": "#/components/schemas/UpdateImageEvent"
+                },
+                "property_name": "event"
+              },
+              "one_of": [
+                {
+                  "event": "terminate",
+                  "properties": {
+                    "event": {
+                      "const": "terminate",
+                      "default": "terminate",
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "event"
+                  ],
+                  "title": "Terminate",
+                  "types": [
+                    "object"
+                  ]
+                },
+                {
+                  "event": "update-image",
+                  "properties": {
+                    "event": {
+                      "const": "update-image",
+                      "default": "update-image",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "image_base64": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "image_url": {
+                      "format": "uri",
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "event"
+                  ],
+                  "title": "Update Image",
+                  "types": [
+                    "object"
+                  ]
+                },
+                {
+                  "event": "update-agent-prompt",
+                  "properties": {
+                    "agent_prompt": {
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "event": {
+                      "const": "update-agent-prompt",
+                      "default": "update-agent-prompt",
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "agent_prompt",
+                    "event"
+                  ],
+                  "title": "Update Agent Prompt",
+                  "types": [
+                    "object"
+                  ]
+                },
+                {
+                  "event": "update-idle-prompt",
+                  "properties": {
+                    "event": {
+                      "const": "update-idle-prompt",
+                      "default": "update-idle-prompt",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "idle_prompt": {
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "event",
+                    "idle_prompt"
+                  ],
+                  "title": "Update Idle Prompt",
+                  "types": [
+                    "object"
+                  ]
+                },
+                {
+                  "event": "pose-trigger",
+                  "properties": {
+                    "event": {
+                      "const": "pose-trigger",
+                      "default": "pose-trigger",
+                      "types": [
+                        "string"
+                      ]
+                    },
+                    "pose_trigger": {
+                      "properties": {
+                        "name": {
+                          "types": [
+                            "string"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "types": [
+                        "object"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "event",
+                    "pose_trigger"
+                  ],
+                  "title": "Action Trigger",
+                  "types": [
+                    "object"
+                  ]
+                },
+                {
+                  "event": "reset-idle-timeout",
+                  "properties": {
+                    "event": {
+                      "const": "reset-idle-timeout",
+                      "default": "reset-idle-timeout",
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "event"
+                  ],
+                  "title": "Reset Idle Timeout",
+                  "types": [
+                    "object"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "schema": {
+          "discriminator": {
+            "mapping": {
+              "pose-trigger": "#/components/schemas/PoseTriggerEvent",
+              "reset-idle-timeout": "#/components/schemas/ResetIdleTimeoutEvent",
+              "terminate": "#/components/schemas/TerminateEvent",
+              "update-agent-prompt": "#/components/schemas/UpdateAgentPromptEvent",
+              "update-idle-prompt": "#/components/schemas/UpdateIdlePromptEvent",
+              "update-image": "#/components/schemas/UpdateImageEvent"
+            },
+            "property_name": "event"
+          },
+          "one_of": [
+            {
+              "event": "terminate",
+              "properties": {
+                "event": {
+                  "const": "terminate",
+                  "default": "terminate",
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ],
+              "title": "Terminate",
+              "types": [
+                "object"
+              ]
+            },
+            {
+              "event": "update-image",
+              "properties": {
+                "event": {
+                  "const": "update-image",
+                  "default": "update-image",
+                  "types": [
+                    "string"
+                  ]
+                },
+                "image_base64": {
+                  "types": [
+                    "string"
+                  ]
+                },
+                "image_url": {
+                  "format": "uri",
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ],
+              "title": "Update Image",
+              "types": [
+                "object"
+              ]
+            },
+            {
+              "event": "update-agent-prompt",
+              "properties": {
+                "agent_prompt": {
+                  "types": [
+                    "string"
+                  ]
+                },
+                "event": {
+                  "const": "update-agent-prompt",
+                  "default": "update-agent-prompt",
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "agent_prompt",
+                "event"
+              ],
+              "title": "Update Agent Prompt",
+              "types": [
+                "object"
+              ]
+            },
+            {
+              "event": "update-idle-prompt",
+              "properties": {
+                "event": {
+                  "const": "update-idle-prompt",
+                  "default": "update-idle-prompt",
+                  "types": [
+                    "string"
+                  ]
+                },
+                "idle_prompt": {
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "event",
+                "idle_prompt"
+              ],
+              "title": "Update Idle Prompt",
+              "types": [
+                "object"
+              ]
+            },
+            {
+              "event": "pose-trigger",
+              "properties": {
+                "event": {
+                  "const": "pose-trigger",
+                  "default": "pose-trigger",
+                  "types": [
+                    "string"
+                  ]
+                },
+                "pose_trigger": {
+                  "properties": {
+                    "name": {
+                      "types": [
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "types": [
+                    "object"
+                  ]
+                }
+              },
+              "required": [
+                "event",
+                "pose_trigger"
+              ],
+              "title": "Action Trigger",
+              "types": [
+                "object"
+              ]
+            },
+            {
+              "event": "reset-idle-timeout",
+              "properties": {
+                "event": {
+                  "const": "reset-idle-timeout",
+                  "default": "reset-idle-timeout",
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "event"
+              ],
+              "title": "Reset Idle Timeout",
+              "types": [
+                "object"
+              ]
+            }
+          ]
+        }
+      },
+      "responses": {
+        "200": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "success": {
+                    "types": [
+                      "boolean"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "success": {
+                "types": [
+                  "boolean"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "400": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "404": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "413": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": []
+    },
+    "POST /liveai/sessions/{session_id}/join-meeting": {
+      "parameters": {
+        "path": {
+          "session_id": {
+            "required": true,
+            "schema": {
+              "types": [
+                "string"
+              ]
+            }
+          }
+        },
+        "query": {}
+      },
+      "request": {
+        "body_required": true,
+        "content_types": [
+          "application/json"
+        ],
+        "media_types": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "bot_name": {
+                  "types": [
+                    "string"
+                  ]
+                },
+                "broadcast_token": {
+                  "types": [
+                    "string"
+                  ]
+                },
+                "livekit_url": {
+                  "types": [
+                    "string"
+                  ]
+                },
+                "meeting_url": {
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "broadcast_token",
+                "livekit_url",
+                "meeting_url"
+              ],
+              "types": [
+                "object"
+              ]
+            }
+          }
+        },
+        "schema": {
+          "properties": {
+            "bot_name": {
+              "types": [
+                "string"
+              ]
+            },
+            "broadcast_token": {
+              "types": [
+                "string"
+              ]
+            },
+            "livekit_url": {
+              "types": [
+                "string"
+              ]
+            },
+            "meeting_url": {
+              "types": [
+                "string"
+              ]
+            }
+          },
+          "required": [
+            "broadcast_token",
+            "livekit_url",
+            "meeting_url"
+          ],
+          "types": [
+            "object"
+          ]
+        }
+      },
+      "responses": {
+        "200": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "meeting_bot_id": {
+                    "types": [
+                      "string"
+                    ]
+                  },
+                  "websocket_url": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "meeting_bot_id",
+                  "websocket_url"
+                ],
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "meeting_bot_id": {
+                "types": [
+                  "string"
+                ]
+              },
+              "websocket_url": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "meeting_bot_id",
+              "websocket_url"
+            ],
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "400": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "401": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "502": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "503": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "504": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": [
+        "X-API-Key"
+      ]
+    },
+    "POST /liveai/sessions/{session_id}/leave-meeting": {
+      "parameters": {
+        "path": {
+          "session_id": {
+            "required": true,
+            "schema": {
+              "types": [
+                "string"
+              ]
+            }
+          }
+        },
+        "query": {}
+      },
+      "request": {
+        "body_required": true,
+        "content_types": [
+          "application/json"
+        ],
+        "media_types": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "meeting_bot_id": {
+                  "types": [
+                    "string"
+                  ]
+                }
+              },
+              "required": [
+                "meeting_bot_id"
+              ],
+              "types": [
+                "object"
+              ]
+            }
+          }
+        },
+        "schema": {
+          "properties": {
+            "meeting_bot_id": {
+              "types": [
+                "string"
+              ]
+            }
+          },
+          "required": [
+            "meeting_bot_id"
+          ],
+          "types": [
+            "object"
+          ]
+        }
+      },
+      "responses": {
+        "200": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "const": "left",
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "status": {
+                "const": "left",
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "400": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "401": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "500": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "502": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "503": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        },
+        "504": {
+          "content_types": [
+            "application/json"
+          ],
+          "media_types": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "detail": {
+                    "types": [
+                      "string"
+                    ]
+                  }
+                },
+                "types": [
+                  "object"
+                ]
+              }
+            }
+          },
+          "schema": {
+            "properties": {
+              "detail": {
+                "types": [
+                  "string"
+                ]
+              }
+            },
+            "types": [
+              "object"
+            ]
+          }
+        }
+      },
+      "security": [
+        "X-API-Key"
+      ]
+    }
+  },
+  "paths": [
+    "/liveai/rooms",
+    "/liveai/rooms/{session_id}",
+    "/liveai/sessions",
+    "/liveai/sessions/{session_id}",
+    "/liveai/sessions/{session_id}/control",
+    "/liveai/sessions/{session_id}/join-meeting",
+    "/liveai/sessions/{session_id}/leave-meeting"
+  ],
+  "source_metadata": {
+    "captured_at": "2026-07-17T22:27:53.222217+00:00",
+    "llms": {
+      "normalized_consistent": true,
+      "probe_count": 3,
+      "probes": [
+        {
+          "age": "0",
+          "date": "Fri, 17 Jul 2026 22:27:52 GMT",
+          "etag": null,
+          "final_url": "https://lemonslice.com/docs/llms.txt",
+          "last_modified": null,
+          "sha256": "4d1366edd50a02e2e9a55171722dbbdede7526ad144e1f00c89a5b9730a9723a"
+        },
+        {
+          "age": "0",
+          "date": "Fri, 17 Jul 2026 22:27:52 GMT",
+          "etag": null,
+          "final_url": "https://lemonslice.com/docs/llms.txt",
+          "last_modified": null,
+          "sha256": "4d1366edd50a02e2e9a55171722dbbdede7526ad144e1f00c89a5b9730a9723a"
+        },
+        {
+          "age": "0",
+          "date": "Fri, 17 Jul 2026 22:27:53 GMT",
+          "etag": null,
+          "final_url": "https://lemonslice.com/docs/llms.txt",
+          "last_modified": null,
+          "sha256": "4d1366edd50a02e2e9a55171722dbbdede7526ad144e1f00c89a5b9730a9723a"
+        }
+      ],
+      "raw_consistent": true,
+      "url": "https://lemonslice.com/docs/llms.txt"
+    },
+    "openapi": {
+      "normalized_consistent": true,
+      "probe_count": 3,
+      "probes": [
+        {
+          "age": "1071",
+          "date": "Fri, 17 Jul 2026 22:10:00 GMT",
+          "etag": "\"7f46e79cad95978938745b73fded7f51\"",
+          "final_url": "https://lemonslice.com/docs/openapi.json",
+          "last_modified": "Fri, 17 Jul 2026 19:57:38 GMT",
+          "normalized_sha256": "2b59e610801c312cd903a914f002cd650ee2b3c57e71895bf0abe948a1c06cf9",
+          "sha256": "c7fb3518bbd8932aae7c49a4f4ec080f908788b2e198c7b7328f4c574bcd5723"
+        },
+        {
+          "age": "1072",
+          "date": "Fri, 17 Jul 2026 22:10:00 GMT",
+          "etag": "\"7f46e79cad95978938745b73fded7f51\"",
+          "final_url": "https://lemonslice.com/docs/openapi.json",
+          "last_modified": "Fri, 17 Jul 2026 19:57:38 GMT",
+          "normalized_sha256": "2b59e610801c312cd903a914f002cd650ee2b3c57e71895bf0abe948a1c06cf9",
+          "sha256": "c7fb3518bbd8932aae7c49a4f4ec080f908788b2e198c7b7328f4c574bcd5723"
+        },
+        {
+          "age": "1072",
+          "date": "Fri, 17 Jul 2026 22:10:00 GMT",
+          "etag": "\"7f46e79cad95978938745b73fded7f51\"",
+          "final_url": "https://lemonslice.com/docs/openapi.json",
+          "last_modified": "Fri, 17 Jul 2026 19:57:38 GMT",
+          "normalized_sha256": "2b59e610801c312cd903a914f002cd650ee2b3c57e71895bf0abe948a1c06cf9",
+          "sha256": "c7fb3518bbd8932aae7c49a4f4ec080f908788b2e198c7b7328f4c574bcd5723"
+        }
+      ],
+      "raw_consistent": true,
+      "url": "https://lemonslice.com/docs/openapi.json"
+    }
+  }
+}

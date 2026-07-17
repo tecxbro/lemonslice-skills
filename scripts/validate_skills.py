@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Validate LemonSlice skill structure without third-party dependencies."""
-
+"""Validate LemonSlice skill structure and local documentation references."""
 from __future__ import annotations
 
 import argparse
@@ -56,6 +55,15 @@ def parse_frontmatter(text: str) -> dict[str, str]:
     return values
 
 
+def documentation_files() -> list[Path]:
+    candidates = [ROOT / "README.md"]
+    candidates.extend(ROOT.glob("references/**/*.md"))
+    candidates.extend(ROOT.glob("lemonslice-*/SKILL.md"))
+    candidates.extend(ROOT.glob("lemonslice-*/references/**/*.md"))
+    candidates.extend(ROOT.glob("evals/**/*.md"))
+    return sorted({path for path in candidates if path.is_file()})
+
+
 def local_links(path: Path, text: str) -> Iterable[tuple[str, Path]]:
     for raw in MARKDOWN_LINK_RE.findall(text):
         target = raw.split("#", 1)[0].strip()
@@ -81,9 +89,9 @@ def validate_agent_yaml(path: Path) -> list[str]:
     return errors
 
 
-def validate_links(skills: list[Path], known_skills: set[str]) -> list[str]:
+def validate_links(documents: list[Path], known_skills: set[str]) -> list[str]:
     errors: list[str] = []
-    for path in skills:
+    for path in documents:
         text = path.read_text(encoding="utf-8")
         for raw, resolved in local_links(path, text):
             if not resolved.exists():
@@ -91,7 +99,7 @@ def validate_links(skills: list[Path], known_skills: set[str]) -> list[str]:
                     f"{path.relative_to(ROOT)}: local link does not exist: {raw}"
                 )
         for referenced in sorted(referenced_skill_names(text)):
-            if referenced not in known_skills:
+            if referenced not in known_skills and referenced != "lemonslice-skills":
                 errors.append(
                     f"{path.relative_to(ROOT)}: referenced skill does not exist: {referenced}"
                 )
@@ -146,7 +154,7 @@ def validate_skill(path: Path, known_skills: set[str]) -> list[str]:
             )
 
     for referenced in sorted(referenced_skill_names(text)):
-        if referenced not in known_skills:
+        if referenced not in known_skills and referenced != "lemonslice-skills":
             errors.append(f"{relative}: referenced skill does not exist: {referenced}")
     return errors
 
@@ -156,7 +164,7 @@ def main() -> int:
     parser.add_argument(
         "--links-only",
         action="store_true",
-        help="Validate local links and referenced skill names only.",
+        help="Validate local links and referenced skill names across repository Markdown.",
     )
     args = parser.parse_args()
 
@@ -166,7 +174,8 @@ def main() -> int:
         return 1
 
     known_skills = {path.parent.name for path in skills}
-    errors = validate_links(skills, known_skills)
+    documents = documentation_files()
+    errors = validate_links(documents, known_skills)
 
     if not args.links_only:
         for path in skills:
@@ -181,8 +190,8 @@ def main() -> int:
         print(f"\n{len(unique_errors)} validation failure(s).")
         return 1
 
-    mode = "links" if args.links_only else "skill structure"
-    print(f"PASS: validated {mode} for {len(skills)} skills.")
+    mode = "documentation links" if args.links_only else "skill structure and documentation"
+    print(f"PASS: validated {mode} for {len(skills)} skills and {len(documents)} Markdown files.")
     return 0
 
 

@@ -14,11 +14,11 @@ Prefer framework plugins when the repository already uses LiveKit Agents or Pipe
 
 - Create with `POST /liveai/sessions`, not `/liveai/rooms`.
 - Keep `X-API-Key` in trusted server code.
-- Use `transport_type: "livekit"` or `"daily"` and the matching transport properties.
+- Use only transport values exposed by the stable captured OpenAPI; observed values are `livekit` and `daily`.
 - JSON requests use exactly one of `agent_id` or `agent_image_url`; reject both and reject neither.
-- The verified OpenAPI also declares `multipart/form-data` with `image` and `payload`. Do not assume file upload support when a future snapshot omits that media type.
-- The current raw contract documents `agent_prompt`, `agent_idle_prompt`, `idle_timeout`, `response_done_timeout`, `aspect_ratio`, `model`, and LiveKit-only `simulcast`.
-- Raw REST, LiveKit plugins, and Pipecat are separate surfaces. Never copy a field between them without checking the current OpenAPI or installed constructor signature.
+- `agent_prompt`, `agent_idle_prompt`, `idle_timeout`, `response_done_timeout`, and LiveKit-only `simulcast` have appeared consistently in public JSON documentation.
+- Multipart input, raw `model`, raw `aspect_ratio`, and idle-reset support have differed across public retrieval locations. Do not use them unless the current stable source evidence explicitly exposes them.
+- Raw REST, LiveKit plugins, and Pipecat are separate surfaces. Never copy a field between them without checking the captured OpenAPI or installed constructor signature.
 - Validate the full response shape and persist `session_id` against an authorized app-owned record.
 - Use an abortable request timeout and structured errors.
 - Implement explicit termination and lifecycle cleanup.
@@ -29,7 +29,7 @@ External Zoom, Google Meet, Microsoft Teams, or Webex requests route to `lemonsl
 
 ## Example JSON request
 
-Keep the baseline request minimal; add model or rendering options only when the current snapshot and account support them.
+Keep the baseline request minimal. Add volatile fields only when the stable captured OpenAPI and account support them.
 
 ```ts
 const controller = new AbortController();
@@ -93,7 +93,7 @@ Handle:
 - `TIMED_OUT`
 - `FAILED`
 
-Do not treat `QUEUED` as immediate failure. Warm capacity may start in seconds, while a cold start can take substantially longer. Startup timeouts should be bounded but not unrealistically short; current status documentation says a cold start can take roughly 2.5 minutes.
+Do not treat `QUEUED` as immediate failure. Warm capacity may start in seconds, while a cold start can take substantially longer. Startup timeouts should be bounded but not unrealistically short; observed status documentation says a cold start can take roughly 2.5 minutes.
 
 Never return raw API keys or unrestricted transport tokens. Run available checks and verify cleanup paths.
 
