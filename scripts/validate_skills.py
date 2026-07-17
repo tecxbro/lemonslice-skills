@@ -31,6 +31,7 @@ TRIGGER_WORDS = {
     "use",
 }
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+URL_RE = re.compile(r"(?:https?://|mailto:)[^\s)>]+")
 SKILL_NAME_RE = re.compile(r"\blemonslice-[a-z0-9-]+\b")
 HEADING_RE = re.compile(r"^#{1,6}\s+(.+)$", re.MULTILINE)
 REAL_SECRET_RE = re.compile(
@@ -63,6 +64,12 @@ def local_links(path: Path, text: str) -> Iterable[tuple[str, Path]]:
         yield raw, (path.parent / target).resolve()
 
 
+def referenced_skill_names(text: str) -> set[str]:
+    """Return skill identifiers from prose/code, excluding URL path segments."""
+    without_urls = URL_RE.sub("", text)
+    return set(SKILL_NAME_RE.findall(without_urls))
+
+
 def validate_agent_yaml(path: Path) -> list[str]:
     errors: list[str] = []
     text = path.read_text(encoding="utf-8")
@@ -83,7 +90,7 @@ def validate_links(skills: list[Path], known_skills: set[str]) -> list[str]:
                 errors.append(
                     f"{path.relative_to(ROOT)}: local link does not exist: {raw}"
                 )
-        for referenced in sorted(set(SKILL_NAME_RE.findall(text))):
+        for referenced in sorted(referenced_skill_names(text)):
             if referenced not in known_skills:
                 errors.append(
                     f"{path.relative_to(ROOT)}: referenced skill does not exist: {referenced}"
@@ -138,7 +145,7 @@ def validate_skill(path: Path, known_skills: set[str]) -> list[str]:
                 f"{relative}: duplicates volatile raw API fields without an OpenAPI/reference source"
             )
 
-    for referenced in sorted(set(SKILL_NAME_RE.findall(text))):
+    for referenced in sorted(referenced_skill_names(text)):
         if referenced not in known_skills:
             errors.append(f"{relative}: referenced skill does not exist: {referenced}")
     return errors
@@ -168,9 +175,10 @@ def main() -> int:
             errors.extend(validate_agent_yaml(agent_yaml))
 
     if errors:
-        for error in sorted(set(errors)):
+        unique_errors = sorted(set(errors))
+        for error in unique_errors:
             print(f"FAIL: {error}")
-        print(f"\n{len(set(errors))} validation failure(s).")
+        print(f"\n{len(unique_errors)} validation failure(s).")
         return 1
 
     mode = "links" if args.links_only else "skill structure"
