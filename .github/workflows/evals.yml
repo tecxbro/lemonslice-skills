@@ -1,0 +1,64 @@
+name: LemonSlice skill evaluations
+
+on:
+  push:
+    paths:
+      - "**/SKILL.md"
+      - "**/references/**"
+      - "evals/**"
+      - "scripts/validate_skills.py"
+      - "references/implementation-contract.md"
+      - ".github/workflows/evals.yml"
+  pull_request:
+    paths:
+      - "**/SKILL.md"
+      - "**/references/**"
+      - "evals/**"
+      - "scripts/validate_skills.py"
+      - "references/implementation-contract.md"
+      - ".github/workflows/evals.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-skill-structure:
+    name: Validate skill structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/validate_skills.py
+
+  validate-evaluation-schema:
+    name: Validate evaluation schema and fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python evals/run_evals.py --validate
+
+  test-openapi-normalizer:
+    name: Unit-test OpenAPI normalization
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s lemonslice-api-reference/tests -p "test_*.py" -v
+
+  check-documentation-links:
+    name: Check documentation links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/validate_skills.py --links-only
