@@ -1,0 +1,42 @@
+name: LemonSlice docs drift
+
+on:
+  schedule:
+    - cron: "17 15 * * 1"
+  workflow_dispatch:
+  push:
+    paths:
+      - "**/SKILL.md"
+      - "lemonslice-api-reference/scripts/**"
+      - "lemonslice-api-reference/references/**"
+      - ".github/workflows/docs-drift.yml"
+  pull_request:
+    paths:
+      - "**/SKILL.md"
+      - "lemonslice-api-reference/scripts/**"
+      - "lemonslice-api-reference/references/**"
+      - ".github/workflows/docs-drift.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  docs-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compare OpenAPI and documentation index
+        run: |
+          python lemonslice-api-reference/scripts/sync_openapi.py \
+            --check \
+            --report artifacts/docs-drift.md
+      - name: Upload readable report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lemonslice-docs-drift
+          path: artifacts/docs-drift.md
+          if-no-files-found: error

@@ -1,0 +1,4 @@
+interface:
+  display_name: "LemonSlice Appearance & Rendering"
+  short_description: "Choose models, framing, aspect ratios, and WebGL compositing"
+  default_prompt: "Implement the requested LemonSlice appearance or rendering changes, validating model constraints and using GPU WebGL for chroma key."

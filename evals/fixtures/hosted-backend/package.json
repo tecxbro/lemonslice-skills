@@ -1,0 +1,7 @@
+{
+  "name": "fixture-hosted-backend",
+  "private": true,
+  "dependencies": {
+    "next": "latest"
+  }
+}

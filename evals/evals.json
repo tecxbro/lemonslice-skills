@@ -1,65 +1,337 @@
 {
   "skill_name": "lemonslice-skills",
+  "schema_version": 2,
   "evals": [
     {
-      "id": 1,
-      "prompt": "Add Lemon Slice to my LiveKit agent. The repo has a Python worker using livekit-agents, AgentSession, JobContext, and ctx.room. Tell me what files to edit and what to add.",
-      "expected_output": "Routes through lemonslice-integration-choice to lemonslice-livekit, identifies Python LiveKit, avoids hosted/widget/self-managed raw REST, includes package install, AvatarSession wiring, server-only LEMONSLICE_API_KEY, bot_ready readiness, and cleanup.",
-      "files": []
+      "id": "livekit-python-first-frame",
+      "prompt": "Add LemonSlice to this LiveKit Python app and implement the frontend call state.",
+      "fixture": "fixtures/livekit-python",
+      "expected_skill": "lemonslice-livekit",
+      "expected_files": [
+        "agent.py",
+        "frontend/components/AvatarCall.tsx",
+        ".env.example"
+      ],
+      "must_contain": [
+        "AvatarSession",
+        "LiveKitAvatarReadyWatcher",
+        "LEMONSLICE_API_KEY",
+        "ParticipantDisconnected"
+      ],
+      "must_not_contain": [
+        "NEXT_PUBLIC_LEMONSLICE_API_KEY",
+        "/api/liveai/rooms",
+        "bot_ready is proof that video rendered"
+      ]
     },
     {
-      "id": 2,
-      "prompt": "Embed Lemon Slice widget in my Next.js app. I just want the prebuilt website widget on every page, no backend.",
-      "expected_output": "Routes to lemonslice-widget, not hosted-daily or self-managed. Gives Next.js widget placement, agent-id, script loading once, no API key in frontend, and optional TypeScript custom element declaration.",
-      "files": []
+      "id": "livekit-node-exact-imports",
+      "prompt": "Implement LemonSlice in this Node LiveKit worker using a local image Buffer and Flash.",
+      "fixture": "fixtures/livekit-node",
+      "expected_skill": "lemonslice-livekit",
+      "expected_files": [
+        "src/agent.ts",
+        ".env.example"
+      ],
+      "must_contain": [
+        "@livekit/agents-plugin-lemonslice",
+        "agentImage",
+        "agentImageMimeType",
+        "extraPayload",
+        "model"
+      ],
+      "must_not_contain": [
+        "from livekit.plugins import lemonslice",
+        "NEXT_PUBLIC_LEMONSLICE_API_KEY"
+      ]
     },
     {
-      "id": 3,
-      "prompt": "Create a hosted Lemon Slice Daily room from my backend and return the room URL and token to my React frontend.",
-      "expected_output": "Routes to lemonslice-hosted as backend primary and lemonslice-hosted-daily as secondary. Uses POST /api/liveai/rooms with server-side X-API-Key and agent_id only. Returns room_url, token, image_url, session_id safely.",
-      "files": []
+      "id": "livekit-node-legacy-signature",
+      "prompt": "Add a local image to this Node LiveKit agent, but the installed LemonSlice plugin type signature does not include agentImage.",
+      "fixture": "fixtures/livekit-node-legacy",
+      "expected_skill": "lemonslice-livekit",
+      "expected_files": [
+        "package.json",
+        "src/agent.ts"
+      ],
+      "must_contain": [
+        "agentImageUrl",
+        "@livekit/agents-plugin-lemonslice"
+      ],
+      "must_not_contain": [
+        "agentImage:",
+        "from livekit.plugins import lemonslice"
+      ]
     },
     {
-      "id": 4,
-      "prompt": "My backend already returns room_url and token from Lemon Slice. Build the React UI that joins Daily and waits until the avatar is ready.",
-      "expected_output": "Routes to lemonslice-hosted-daily, not lemonslice-hosted backend creation. Uses Daily join with room_url/token, waits for bot_ready via app-message, has startup timeout, handles idle_timeout, daily_error, video_generation_error, participant-left, cleanup, and retry with fresh credentials.",
-      "files": []
+      "id": "livekit-casual-widget-word",
+      "prompt": "This LiveKit agent has a custom widget panel. Add LemonSlice avatar video.",
+      "fixture": "fixtures/livekit-python",
+      "expected_skill": "lemonslice-livekit",
+      "expected_files": [
+        "agent.py"
+      ],
+      "must_contain": [
+        "AvatarSession"
+      ],
+      "must_not_contain": [
+        "<lemonslice-widget"
+      ]
     },
     {
-      "id": 5,
-      "prompt": "My Pipecat bot uses Daily transport. Add Lemon Slice avatar video to it.",
-      "expected_output": "Routes to lemonslice-pipecat, explicitly avoids confusing Pipecat Daily with Hosted Daily. Includes pipecat-ai[lemonslice], LemonSliceTransport, LemonSliceNewSessionRequest, optional daily_room_url/daily_token behavior, bot/avatar/user participant model, and cleanup.",
-      "files": []
+      "id": "pipecat-daily-not-hosted",
+      "prompt": "My Pipecat bot uses Daily. Add LemonSlice and keep my STT/LLM/TTS.",
+      "fixture": "fixtures/pipecat",
+      "expected_skill": "lemonslice-pipecat",
+      "expected_files": [
+        "bot.py"
+      ],
+      "must_contain": [
+        "LemonSliceTransport",
+        "LemonSliceNewSessionRequest",
+        "model",
+        "aspect_ratio"
+      ],
+      "must_not_contain": [
+        "/api/liveai/rooms",
+        "force-end"
+      ]
     },
     {
-      "id": 6,
-      "prompt": "I have my own STT, LLM, and TTS backend, not LiveKit or Pipecat. I need to create a Lemon Slice avatar session over Daily using REST.",
-      "expected_output": "Routes to lemonslice-self-managed or lemonslice-api-reference for raw REST. Uses POST /api/liveai/sessions, transport_type daily, properties, exactly one of agent_id or agent_image_url, server-side X-API-Key, stores session_id, and does not use /api/liveai/rooms.",
-      "files": []
+      "id": "hosted-backend-authz",
+      "prompt": "Create a hosted LemonSlice room endpoint for signed-in users.",
+      "fixture": "fixtures/hosted-backend",
+      "expected_skill": "lemonslice-hosted",
+      "expected_files": [
+        "app/api/avatar/route.ts"
+      ],
+      "must_contain": [
+        "/api/liveai/rooms",
+        "X-API-Key",
+        "session_id",
+        "room_url",
+        "token"
+      ],
+      "must_not_contain": [
+        "NEXT_PUBLIC_LEMONSLICE_API_KEY"
+      ]
     },
     {
-      "id": 7,
-      "prompt": "The avatar should wave when the user says hello and celebrate when the user finishes signup. We already have the Lemon Slice session working.",
-      "expected_output": "Routes to lemonslice-control-actions after confirming selected path. Waits for readiness before controls, uses supported action allowlist, avoids LLM-invented action names, maps tool calls to supported actions, and avoids overlapping action triggers.",
-      "files": []
+      "id": "hosted-frontend-no-backend",
+      "prompt": "The frontend currently has no credential route. Make the hosted Daily call work safely.",
+      "fixture": "fixtures/hosted-daily-nextjs",
+      "expected_skill": "lemonslice-hosted",
+      "expected_files": [
+        "app/api/avatar/route.ts",
+        "app/components/AvatarCall.tsx"
+      ],
+      "must_contain": [
+        "useAvatarReady",
+        "room_url",
+        "token"
+      ],
+      "must_not_contain": [
+        "fetch(\"https://lemonslice.com/api/liveai/rooms\")",
+        "NEXT_PUBLIC_LEMONSLICE_API_KEY"
+      ]
     },
     {
-      "id": 8,
-      "prompt": "Make this Lemon Slice integration production-ready. It works locally but sometimes hangs forever and we are not sure if the API key is safe.",
-      "expected_output": "Routes to lemonslice-production-patterns as production audit. Checks server-only API key, no frontend X-API-Key, bot_ready readiness, startup timeout, idle/GPU/provider timeouts, cleanup, disconnect handling, safe logging, retries, and latency budget.",
-      "files": []
+      "id": "browser-x-api-key",
+      "prompt": "Fix this browser component that calls LemonSlice with X-API-Key.",
+      "fixture": "fixtures/hosted-daily-nextjs",
+      "expected_skill": "lemonslice-hosted-daily",
+      "expected_files": [
+        "app/components/AvatarCall.tsx",
+        "app/api/avatar/route.ts"
+      ],
+      "must_contain": [
+        "useAvatarReady"
+      ],
+      "must_not_contain": [
+        "X-API-Key",
+        "NEXT_PUBLIC_LEMONSLICE_API_KEY"
+      ]
     },
     {
-      "id": 9,
-      "prompt": "Debug my Lemon Slice API calls. I am calling /api/liveai/rooms but I own STT and TTS myself and expected only a session_id.",
-      "expected_output": "Routes to lemonslice-api-reference or lemonslice-self-managed. Flags endpoint-family mixup: developer-owned STT/TTS should use /api/liveai/sessions, while /api/liveai/rooms is Hosted Pipeline. Explains expected response fields.",
-      "files": []
+      "id": "bot-ready-no-frame",
+      "prompt": "bot_ready arrives but users still see a black frame. Fix the UI.",
+      "fixture": "fixtures/hosted-daily-nextjs",
+      "expected_skill": "lemonslice-hosted-daily",
+      "expected_files": [
+        "app/components/AvatarCall.tsx"
+      ],
+      "must_contain": [
+        "useAvatarReady",
+        "persistentTrack"
+      ],
+      "must_not_contain": [
+        "setActive(true) // bot_ready"
+      ]
     },
     {
-      "id": 10,
-      "prompt": "What is Lemon Slice and which skill should I use? I am not sure whether I need LiveKit, Pipecat, Hosted, or Widget.",
-      "expected_output": "Routes to lemonslice-overview and/or lemonslice-integration-choice. Explains LemonSlice as avatar/video layer, what it is not, why multiple paths exist, and then asks or routes based on STT/LLM/TTS ownership and framework evidence.",
-      "files": []
+      "id": "avatar-participant-disconnect",
+      "prompt": "Handle the LemonSlice avatar disappearing from an active LiveKit call.",
+      "fixture": "fixtures/livekit-python",
+      "expected_skill": "lemonslice-production-patterns",
+      "expected_files": [
+        "frontend/components/AvatarCall.tsx"
+      ],
+      "must_contain": [
+        "ParticipantDisconnected",
+        "Disconnected"
+      ],
+      "must_not_contain": []
+    },
+    {
+      "id": "fatal-daily-startup",
+      "prompt": "Handle fatal daily_error during Hosted Daily startup and implement retry.",
+      "fixture": "fixtures/hosted-daily-nextjs",
+      "expected_skill": "lemonslice-hosted-daily",
+      "expected_files": [
+        "app/components/AvatarCall.tsx"
+      ],
+      "must_contain": [
+        "daily_error",
+        "fatal",
+        "fresh"
+      ],
+      "must_not_contain": [
+        "reuseToken"
+      ]
+    },
+    {
+      "id": "control-auth-conflict",
+      "prompt": "Add reset-idle and terminate controls. The docs disagree about X-API-Key.",
+      "fixture": "fixtures/raw-rest",
+      "expected_skill": "lemonslice-control-actions",
+      "expected_files": [
+        "server.ts"
+      ],
+      "must_contain": [
+        "reset_idle_timeout",
+        "terminate",
+        "server"
+      ],
+      "must_not_contain": [
+        "control requires no authentication"
+      ]
+    },
+    {
+      "id": "ordinary-livekit-not-meeting",
+      "prompt": "Join my normal LiveKit room using join-meeting.",
+      "fixture": "fixtures/meeting-platform",
+      "expected_skill": "lemonslice-meeting-platforms",
+      "expected_files": [],
+      "must_contain": [
+        "Do not use",
+        "ordinary LiveKit"
+      ],
+      "must_not_contain": [
+        "/join-meeting"
+      ]
+    },
+    {
+      "id": "meeting-platform-cleanup",
+      "prompt": "Have the avatar join this Google Meet and make shutdown reliable.",
+      "fixture": "fixtures/meeting-platform",
+      "expected_skill": "lemonslice-meeting-platforms",
+      "expected_files": [
+        "worker.py"
+      ],
+      "must_contain": [
+        "meeting_bot_id",
+        "websocket_url",
+        "leave-meeting",
+        "broadcast_token"
+      ],
+      "must_not_contain": [
+        "NEXT_PUBLIC_LEMONSLICE_API_KEY"
+      ]
+    },
+    {
+      "id": "lite-unsupported-aspect",
+      "prompt": "Use LemonSlice Lite at 9x16.",
+      "fixture": "fixtures/appearance-rendering",
+      "expected_skill": "lemonslice-appearance-rendering",
+      "expected_files": [],
+      "must_contain": [
+        "Lite",
+        "2x3",
+        "1x1"
+      ],
+      "must_not_contain": [
+        "aspect_ratio=\"9x16\""
+      ]
+    },
+    {
+      "id": "flash-artifact-test",
+      "prompt": "Switch this avatar to Flash for production.",
+      "fixture": "fixtures/appearance-rendering",
+      "expected_skill": "lemonslice-appearance-rendering",
+      "expected_files": [
+        "avatar.ts"
+      ],
+      "must_contain": [
+        "flash",
+        "test",
+        "artifact"
+      ],
+      "must_not_contain": [
+        "guaranteed identical quality"
+      ]
+    },
+    {
+      "id": "green-screen-webgl",
+      "prompt": "Remove the green background from the avatar in real time.",
+      "fixture": "fixtures/appearance-rendering",
+      "expected_skill": "lemonslice-appearance-rendering",
+      "expected_files": [
+        "ChromaKey.ts"
+      ],
+      "must_contain": [
+        "WebGL",
+        "fragment shader",
+        "spill",
+        "smoothness"
+      ],
+      "must_not_contain": [
+        "getImageData",
+        "for (let pixel"
+      ]
+    },
+    {
+      "id": "stale-daily-token-retry",
+      "prompt": "Retry the Hosted call after startup timeout.",
+      "fixture": "fixtures/hosted-daily-nextjs",
+      "expected_skill": "lemonslice-hosted-daily",
+      "expected_files": [
+        "app/components/AvatarCall.tsx"
+      ],
+      "must_contain": [
+        "fresh",
+        "backend"
+      ],
+      "must_not_contain": [
+        "reuseToken",
+        "cachedToken"
+      ]
+    },
+    {
+      "id": "implementation-not-plan",
+      "prompt": "Implement LemonSlice in this repository; do not just explain it.",
+      "fixture": "fixtures/livekit-python",
+      "expected_skill": "lemonslice-livekit",
+      "expected_files": [
+        "agent.py",
+        "frontend/components/AvatarCall.tsx"
+      ],
+      "must_contain": [
+        "AvatarSession"
+      ],
+      "must_not_contain": [
+        "Here is a plan",
+        "pseudocode only"
+      ]
     }
   ]
 }

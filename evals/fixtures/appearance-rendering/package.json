@@ -1,0 +1,7 @@
+{
+  "name": "fixture-appearance",
+  "private": true,
+  "dependencies": {
+    "livekit-client": "latest"
+  }
+}

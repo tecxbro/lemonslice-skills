@@ -1,0 +1,7 @@
+{
+  "name": "fixture-livekit-node",
+  "private": true,
+  "dependencies": {
+    "@livekit/agents": "latest"
+  }
+}

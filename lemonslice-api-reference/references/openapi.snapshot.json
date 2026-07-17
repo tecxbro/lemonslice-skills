@@ -1,0 +1,83 @@
+{
+  "audited_at": "2026-07-17",
+  "generated_from": "https://lemonslice.com/docs/openapi.json",
+  "paths": [
+    "/liveai/rooms",
+    "/liveai/rooms/{session_id}",
+    "/liveai/sessions",
+    "/liveai/sessions/{session_id}",
+    "/liveai/sessions/{session_id}/control",
+    "/liveai/sessions/{session_id}/join-meeting",
+    "/liveai/sessions/{session_id}/leave-meeting"
+  ],
+  "operations": {
+    "POST /liveai/sessions": {
+      "security": [
+        "X-API-Key"
+      ],
+      "request": {
+        "required": [
+          "agent_id",
+          "agent_image_url",
+          "properties",
+          "transport_type"
+        ],
+        "enums": {
+          "transport_type": [
+            "daily",
+            "livekit"
+          ]
+        }
+      },
+      "responses": [
+        "201",
+        "400",
+        "401",
+        "402",
+        "403",
+        "404",
+        "500"
+      ]
+    },
+    "POST /liveai/sessions/{session_id}/control": {
+      "security": [],
+      "request": {
+        "required": [
+          "event"
+        ]
+      },
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "404",
+        "500"
+      ]
+    },
+    "POST /liveai/sessions/{session_id}/join-meeting": {
+      "security": [
+        "X-API-Key"
+      ],
+      "request": {
+        "required": [
+          "broadcast_token",
+          "livekit_url",
+          "meeting_url"
+        ]
+      },
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "500",
+        "502",
+        "503",
+        "504"
+      ]
+    }
+  },
+  "notes": [
+    "The control operation is intentionally tracked with security: [] because this is a known documentation conflict.",
+    "Reset Idle Timeout is tracked in docs-conflicts.md because it may be absent from the downloadable OpenAPI."
+  ]
+}

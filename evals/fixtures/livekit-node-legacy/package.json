@@ -1,0 +1,8 @@
+{
+  "name": "fixture-livekit-node-legacy",
+  "private": true,
+  "dependencies": {
+    "@livekit/agents": "1.0.0",
+    "@livekit/agents-plugin-lemonslice": "0.1.0"
+  }
+}
