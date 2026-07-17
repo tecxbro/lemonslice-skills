@@ -1,6 +1,6 @@
 ---
 name: lemonslice-control-actions
-description: Add trusted LemonSlice runtime controls for self-managed REST, LiveKit tool calls, or Hosted Daily messages. Covers auth conflict handling, readiness gates, image and prompt updates, provisioned actions, and termination.
+description: Add trusted LemonSlice runtime controls for self-managed REST, LiveKit tool calls, or Hosted Daily messages. Covers auth conflict handling, readiness gates, image and prompt updates, idle reset, provisioned actions, and termination.
 license: MIT
 ---
 
@@ -18,23 +18,22 @@ Controls require **pipeline readiness** (`bot_ready`). User-facing “avatar vis
 
 `POST /liveai/sessions/{session_id}/control`
 
-Keep it in trusted server code. Current documentation conflicts on control authentication; follow the source-of-truth rule in `lemonslice-api-reference` and preserve known-working behavior.
+Keep it in trusted server code. Current documentation conflicts on control authentication; follow `lemonslice-api-reference` and preserve known-working behavior.
 
-The current raw control contract uses these event names:
+The verified raw control discriminator currently includes:
 
 - `terminate`
 - `update-image`
 - `update-agent-prompt`
 - `update-idle-prompt`
 - `pose-trigger`
+- `reset-idle-timeout`
 
-Do not describe `reset_idle_timeout` as part of the current raw control contract unless it appears in a newly verified endpoint schema.
+Use exact kebab-case event names. Do not invent snake-case aliases such as `update_image`, `update_agent_prompt`, or `reset_idle_timeout`.
 
 Only actions provisioned for the current account and character may be triggered. Never translate arbitrary LLM prose directly into a `pose-trigger` name.
 
 ## Application adapter
-
-Do not let an LLM call LemonSlice directly or invent action names. Expose a narrow application helper:
 
 ```ts
 const ALLOWED_ACTIONS = new Set([
@@ -47,6 +46,7 @@ type AllowedAvatarAction = typeof ALLOWED_ACTIONS extends Set<infer T>
 
 type AvatarControl =
   | { event: "terminate" }
+  | { event: "reset-idle-timeout" }
   | { event: "update-image"; image_url: string }
   | { event: "update-agent-prompt"; agent_prompt: string }
   | { event: "update-idle-prompt"; idle_prompt: string }
