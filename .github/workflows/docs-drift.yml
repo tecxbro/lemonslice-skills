@@ -28,15 +28,23 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Normalize current OpenAPI
+        run: |
+          mkdir -p artifacts
+          python lemonslice-api-reference/scripts/sync_openapi.py \
+            --write-snapshot \
+            --snapshot artifacts/current-openapi.snapshot.json
       - name: Compare OpenAPI and documentation index
         run: |
           python lemonslice-api-reference/scripts/sync_openapi.py \
             --check \
             --report artifacts/docs-drift.md
-      - name: Upload readable report
+      - name: Upload readable report and normalized contract
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: lemonslice-docs-drift
-          path: artifacts/docs-drift.md
+          path: |
+            artifacts/docs-drift.md
+            artifacts/current-openapi.snapshot.json
           if-no-files-found: error
