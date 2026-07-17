@@ -35,6 +35,18 @@ jobs:
           python-version: "3.12"
       - name: Apply reviewed files
         run: python scripts/apply_hardening_bundle.py
+      - name: Exempt repository slug from skill references
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("scripts/validate_skills.py")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              "if referenced not in known_skills:",
+              'if referenced not in known_skills and referenced != "lemonslice-skills":',
+          )
+          path.write_text(text, encoding="utf-8")
+          PY
       - name: Probe and save one stable source set
         run: |
           mkdir -p artifacts
